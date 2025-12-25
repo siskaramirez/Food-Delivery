@@ -14,6 +14,7 @@ Route::get('/menu', [PageController::class, 'menu'])->name('menu.page');
 Route::get('/menu/{id}', [PageController::class, 'show'])->name('menu.detail');
 Route::get('/about', [PageController::class, 'about'])->name('about.page');
 Route::get('/profile', [PageController::class, 'profile'])->name('profile.page');
+Route::get('/cart', [PageController::class, 'cart'])->name('cart.page');
 
 Route::get('/', [AuthController::class, 'landing'])->name('landing');
 Route::get('/landing', [AuthController::class, 'landing'])->name('landing.page');

@@ -69,6 +69,13 @@ class PageController extends Controller
         return view('page.profile', compact('user'));
     }
 
+    public function cart()
+    {
+        $user = $this->getUsers();
+
+        return view('page.cart', compact('user'));
+    }
+
     private function getFoods()
     {
         return [

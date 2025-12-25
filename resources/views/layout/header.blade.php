@@ -74,17 +74,18 @@
         font-size: 1rem;
     }
 
-    .btn-login {
+    .btn-cart {
+        font-size: 1.3rem;
         color: #ff6b6b;
-        font-weight: 600;
+        font-weight: 700;
         text-decoration: none;
         margin-right: 15px;
         transition: all 0.3s;
-        padding-bottom: 2px;
+        padding-bottom: 1px;
         border-bottom: 2px solid transparent;
     }
 
-    .btn-login:hover {
+    .btn-cart:hover {
         border-bottom: 2px solid #ff6b6b;
     }
 
@@ -160,8 +161,8 @@
                 </div>
 
                 <div class="d-flex align-items-center">
-                    <a href="{{ route('signin.page') }}" class="btn-login">Login</a>
-                    <a href="{{ route('signup.page') }}" class="btn btn-signup">Sign Up</a>
+                    <a href="{{ route('cart.page') }}" class="btn-cart" id="header-cart-btn">My Cart<span id="header-cart-count" class="d-none ms-1">0</span></a>
+                    <a href="{{ route('signup.page') }}" class="btn btn-signup ms-3 me-3">Sign Up</a>
 
                     <div class="nav-item dropdown">
                         <a class="dropdown-toggle p-0" href="#" id="profileDrop" role="button" data-bs-toggle="dropdown">
@@ -175,7 +176,7 @@
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a class="dropdown-item text-danger" href="{{ route('landing.page') }}">Logout</a></li>
+                            <li><a class="dropdown-item text-danger" href="{{ route('signin.page') }}">Logout</a></li>
                         </ul>
                     </div>
                 </div>

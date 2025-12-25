@@ -49,7 +49,7 @@
         align-items: center;
         justify-content: center;
         text-decoration: none;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         z-index: 10;
         transition: 0.3s ease;
     }
@@ -65,7 +65,7 @@
     .back-btn-circle:hover {
         background: #ff6b6b;
         transform: translateX(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     }
 
     .back-btn-circle:hover .back-arrow {
@@ -94,9 +94,10 @@
         border-radius: 50%;
         border: none;
         background: white;
-        font-size: 1.5rem;
+        line-height: 1.5rem;
+        font-size: 1.6rem;
         color: #ff6b6b;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         transition: 0.3s;
     }
 
@@ -136,7 +137,7 @@
         background-color: #333;
         color: white;
         transform: translateY(-3px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
     }
 
     .cart-icon-white {
@@ -145,13 +146,15 @@
     }
 
     @media (max-width: 991px) {
-        .main-detail-img { height: 400px; }
+        .main-detail-img {
+            height: 400px;
+        }
     }
 </style>
 
-<div class="container py-5 py-lg-5 mt-4">
+<div class="container py-5 py-lg-5 mt-1">
     <div class="main-show-card shadow-sm border-0 d-flex flex-column flex-lg-row overflow-hidden">
-        
+
         <div class="col-lg-6 image-side-wrapper">
             <div class="food-img-bg-container">
                 <a href="{{ route('menu.page') }}" class="back-btn-circle" title="Back to Menu">
@@ -170,9 +173,9 @@
             </nav>
 
             <h1 class="display-4 fw-bold mb-3">{{ $food['name'] }}</h1>
-            
+
             <div class="d-flex align-items-center gap-4 mb-2">
-                <span class="price-detail">₱{{ $food['price'] }}</span>
+                <span class="price-detail" id="display-price">₱{{ $food['price'] }}</span>
                 <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">Available</span>
             </div>
 
@@ -181,18 +184,79 @@
             </p>
 
             <div class="order-controls-wrapper d-flex flex-wrap align-items-center gap-4">
-                
                 <div class="qty-selector-lg">
-                    <button type="button" class="qty-btn" onclick="this.parentNode.querySelector('input').stepDown()">−</button>
-                    <input class="qty-input ms-2" type="number" value="1" min="1" readonly>
-                    <button type="button" class="qty-btn" onclick="this.parentNode.querySelector('input').stepUp()">+</button>
+                    <button type="button" class="qty-btn" onclick="updateOrder(-1, {{ $food['price'] }})">−</button>
+                    <input id="main-qty-input" class="qty-input ms-2" type="number" value="1" min="1" readonly>
+                    <button type="button" class="qty-btn" onclick="updateOrder(1, {{ $food['price'] }})">+</button>
                 </div>
 
-                <button class="btn btn-add-cart-lg flex-grow-1">
+                <button id="main-cart-btn" class="btn btn-add-cart-lg flex-grow-1">
                     <img src="https://cdn-icons-png.flaticon.com/512/263/263142.png" alt="Cart" class="cart-icon-white">
-                    Add to Cart
+                    <span id="btn-text">Add to Cart (1)</span>
                 </button>
             </div>
+
+            <script>
+                function updateOrder(change, basePrice) {
+                    const qtyInput = document.getElementById('main-qty-input');
+                    const priceDisplay = document.getElementById('display-price');
+                    const btnText = document.getElementById('btn-text');
+                    const cartBtn = document.getElementById('main-cart-btn');
+
+                    let currentQty = parseInt(qtyInput.value);
+                    let newQty = currentQty + change;
+
+                    if (newQty >= 1) {
+                        qtyInput.value = newQty;
+
+                        let totalAmount = basePrice * newQty;
+
+                        priceDisplay.innerText = `₱${totalAmount.toLocaleString()}`;
+
+                        btnText.innerText = `Add to Cart (${newQty})`;
+
+                        cartBtn.style.transform = 'scale(1.03)';
+                        setTimeout(() => {
+                            cartBtn.style.transform = 'scale(1)';
+                        }, 100);
+                    }
+                }
+
+                document.getElementById('main-cart-btn').addEventListener('click', function() {
+                    const qtyInput = document.getElementById('main-qty-input');
+
+                    const foodItem = {
+                        id: "{{ $food['id'] }}",
+                        name: "{{ $food['name'] }}",
+                        price: parseFloat("{{ $food['price'] }}"),
+                        image: "{{ $food['image'] }}",
+                        qty: parseInt(qtyInput.value)
+                    };
+
+                    let cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+
+                    const existingItemIndex = cart.findIndex(item => item.id === foodItem.id);
+                    if (existingItemIndex > -1) {
+                        cart[existingItemIndex].qty += foodItem.qty;
+                    } else {
+                        cart.push(foodItem);
+                    }
+
+                    localStorage.setItem('eatsway_cart', JSON.stringify(cart));
+
+                    updateHeaderCartCount();
+                });
+
+                function updateHeaderCartCount() {
+                    const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+                    const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+                    const headerCount = document.getElementById('header-cart-count');
+                    if (headerCount) {
+                        headerCount.innerText = `(${totalItems})`;
+                        headerCount.classList.remove('d-none');
+                    }
+                }
+            </script>
 
             <div class="mt-5 pt-4 border-top">
                 <div class="d-flex gap-5" style="font-size: 1.1rem;">
