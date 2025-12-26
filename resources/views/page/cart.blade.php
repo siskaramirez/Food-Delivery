@@ -29,7 +29,7 @@
     .qty-selector-cart {
         display: flex;
         align-items: center;
-        background: #f8f9fa;
+        background: #f2f6f9ad;
         border: 1px solid #eee;
         border-radius: 50px;
         padding: 5px 12px;
@@ -189,7 +189,7 @@
             container.innerHTML = `
                 <div class="text-center py-5">
                     <p class="text-muted">Your cart is empty.</p>
-                    <a href="{{ route('menu.page') }}" class="btn btn-outline-danger rounded-pill px-4">Go to Menu</a>
+                    <a href="{{ route('menu.page') }}" class="btn btn-outline-dark rounded-pill px-4">Go to Menu</a>
                 </div>
             `;
             countDisplay.innerText = `(0 items)`;

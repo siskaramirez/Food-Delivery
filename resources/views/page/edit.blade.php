@@ -15,7 +15,7 @@
 
     .profile-avatar-container img {
         width: 150px;
-        border: 5px solid white;
+        border: 2px solid white;
         transition: transform 0.3s ease;
     }
 
@@ -42,6 +42,18 @@
 
     .edit-input:focus {
         border-bottom-color: #2d3436;
+    }
+
+    select.edit-input.form-select {
+        border-radius: 0px;
+        padding: 5px 12px;
+        background-color: transparent;
+        cursor: pointer;
+    }
+
+    select.edit-input.form-select:focus {
+        border-color: #2d3436;
+        box-shadow: none;
     }
 
     .btn-cancel {
@@ -104,7 +116,7 @@
                 <img src="{{ $user['profile_pix'] }}" alt="Profile" class="rounded-circle shadow-sm">
             </div>
             <h2 class="fw-bold mb-2 text-white" id="sidebar-name">{{ $user['name'] }}</h2>
-            <p class="text-white small mb-4">Member since {{ $user['joined'] }}</p>
+            <p class="text-white mb-4">Member since {{ $user['joined'] }}</p>
 
             <a href="{{ route('profile.page') }}" class="btn btn-cancel rounded-pill px-5 w-100 fw-bold mt-auto mb-1 text-decoration-none text-center">Cancel</a>
         </div>
@@ -135,7 +147,7 @@
 
                     <div class="col-md-6">
                         <label class="info-label">Address</label>
-                        <select name="address" id="input-address" class="edit-input mb-2" required>
+                        <select name="address" id="input-address" class="form-select edit-input mb-2" required>
                             <option value="" disabled>Select your City</option>
                             <option value="Caloocan City, Metro Manila" {{ $user['address'] == 'Caloocan City, Metro Manila' ? 'selected' : '' }}>Caloocan City, Metro Manila</option>
                             <option value="Manila City, Metro Manila" {{ $user['address'] == 'Manila City, Metro Manila' ? 'selected' : '' }}>Manila City, Metro Manila</option>
@@ -169,14 +181,30 @@
         localStorage.setItem('user_email', email);
         localStorage.setItem('user_phone', phone);
         localStorage.setItem('user_address', selectedAddress);
+
+        const sidebarName = document.getElementById('sidebar-name');
+        if (sidebarName) sidebarName.innerText = name;
+
+        const displayName = document.getElementById('display-name');
+        if (displayName) displayName.innerText = name;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         const fields = ['name', 'email', 'phone', 'address'];
+
         fields.forEach(field => {
             const saved = localStorage.getItem(`user_${field}`);
-            if (saved) {
-                document.getElementById(`input-${field}`).value = saved;
+            const inputElement = document.getElementById(`input-${field}`);
+
+            if (saved && inputElement) {
+                inputElement.value = saved;
+
+                if (field === 'name') {
+                    const sidebarName = document.getElementById('sidebar-name');
+                    if (sidebarName) {
+                        sidebarName.innerText = saved;
+                    }
+                }
             }
         });
     });

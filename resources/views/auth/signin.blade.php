@@ -58,7 +58,7 @@
         color: white;
         background-color: #ff6b6b;
     }
-    
+
     .hover-red:hover {
         color: #ff6b6b;
     }
@@ -78,19 +78,48 @@
         border-bottom: 2px solid #ff6b6b;
     }
 
+    .login-divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    .login-divider::before,
+    .login-divider::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .login-divider::before {
+        margin-right: 20px;
+    }
+
+    .login-divider::after {
+        margin-left: 20px;
+    }
+
     @media (max-width: 992px) {
-        .signin-form-side { width: 100%; padding: 40px; }
-        .signin-wide-wrapper { max-width: 500px; }
+        .signin-form-side {
+            width: 100%;
+            padding: 40px;
+        }
+
+        .signin-wide-wrapper {
+            max-width: 500px;
+        }
     }
 </style>
 
 <div class="container d-flex justify-content-center align-items-center py-5">
     <div class="signin-wide-wrapper shadow-sm border-0 d-flex overflow-hidden">
-        
+
         <div class="signin-form-side">
             <h2 class="fw-bold mb-2" style="color: #ff6b6b;">Sign In</h2>
             <p class="text-muted small mb-4">Welcome back! Please enter your details.</p>
-            
+
             <form action="{{ route('signin.submit') }}" method="POST" onsubmit="handleSignin()">
                 @csrf
                 <div class="mb-3">
@@ -98,7 +127,7 @@
                     <input type="email" id="email" name="email" class="form-control custom-input" placeholder="Enter your email" required>
                     @error('email') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
-                
+
                 <div class="mb-1">
                     <label class="form-label small fw-bold">Password</label>
                     <input type="password" name="password" class="form-control custom-input" placeholder="Enter password" required>
@@ -106,14 +135,17 @@
                 </div>
 
                 <div class="text-end mb-4">
-                    <a href="#" class="small text-muted">Forgot your Pass?</a>
+                    <a href="#" class="small text-muted">Forgot password?</a>
                 </div>
 
                 <button type="submit" class="btn btn-signin-submit w-100 py-2 fw-bold">Sign In</button>
             </form>
 
             <div class="text-center mt-5">
-                <p class="text-muted small mb-4">or</p>
+                <div class="login-divider mb-4">
+                    <span>or</span>
+                </div>
+
                 <h2 class="fw-bold">
                     <a href="{{ route('signup.page') }}" class="btn-signup-link">Go to Sign Up</a>
                 </h2>

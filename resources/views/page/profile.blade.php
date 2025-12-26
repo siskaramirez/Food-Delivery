@@ -79,7 +79,7 @@
                 <img src="{{ $user['profile_pix'] }}" alt="Profile" class="rounded-circle shadow-sm">
             </div>
             <h2 class="fw-bold mb-2 text-white" id="sidebar-name">{{ $user['name'] }}</h2>
-            <p class="text-white small mb-4">Member since {{ $user['joined'] }}</p>
+            <p class="text-white mb-4">Member since {{ $user['joined'] }}</p>
 
             <a href="{{ route('profile.edit') }}" class="btn btn-edit-profile btn-danger rounded-pill px-5 w-100 fw-bold mt-auto mb-1">Edit Profile</a>
         </div>
@@ -132,10 +132,32 @@
             phone: localStorage.getItem('user_phone')
         };
 
-        if (data.name) document.getElementById('display-name').innerText = data.name;
-        if (data.email) document.getElementById('display-email').innerText = data.email;
-        if (data.phone) document.getElementById('display-phone').innerText = data.phone;
-        if (data.address) document.getElementById('display-address').innerText = data.address;
+        if (data.name) {
+            const displayName = document.getElementById('display-name');
+            if (displayName) {
+                displayName.innerText = data.name;
+            }
+
+            const sidebarName = document.getElementById('sidebar-name');
+            if (sidebarName) {
+                sidebarName.innerText = data.name;
+            }
+        }
+
+        if (data.email) {
+            const displayEmail = document.getElementById('display-email');
+            if (displayEmail) displayEmail.innerText = data.email;
+        }
+
+        if (data.phone) {
+            const displayPhone = document.getElementById('display-phone');
+            if (displayPhone) displayPhone.innerText = data.phone;
+        }
+
+        if (data.address) {
+            const displayAddress = document.getElementById('display-address');
+            if (displayAddress) displayAddress.innerText = data.address;
+        }
     });
 </script>
 
