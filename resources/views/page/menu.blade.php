@@ -137,14 +137,15 @@
 
                 <div class="location-wrapper">
                     <div class="location-pin mb-2 ms-3">
-                        <span style="font-size: 1.5rem;">📍</span> Location
+                        <span style="font-size: 1.5rem;">📍</span>
+                        <span id="display-location">Location</span>
                     </div>
 
                     <h1 class="fw-bold mb-4 ms-4" style="font-size: 2.5rem; line-height: 1.2;">
                         <strong>Discover restaurants that deliver near you.</strong>
                     </h1>
 
-                    <form class="location-bar" action="{{ route('menu.page') }}" method="GET">
+                    <form class="location-bar" action="{{ route('menu.page') }}" method="GET" onsubmit="saveMenuLocation()">
                         <input
                             type="text"
                             list="location-options"
@@ -195,5 +196,24 @@
         @endforeach
     </div>
 </div>
+
+<script>
+    function saveMenuLocation() {
+        const selectedLocation = document.getElementById('location-choice').value;
+
+        if (selectedLocation) {
+            localStorage.setItem('user_address', selectedLocation);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedAddress = localStorage.getItem('user_address');
+        const displayPin = document.getElementById('display-location');
+
+        if (savedAddress && displayPin) {
+            displayPin.innerText = savedAddress;
+        }
+    });
+</script>
 
 @endSection

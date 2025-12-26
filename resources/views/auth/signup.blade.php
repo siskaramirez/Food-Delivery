@@ -38,8 +38,13 @@
     }
 
     @media (max-width: 992px) {
-        .signup-form-side { width: 100%; }
-        .signup-wide-wrapper { max-width: 600px; }
+        .signup-form-side {
+            width: 100%;
+        }
+
+        .signup-wide-wrapper {
+            max-width: 600px;
+        }
     }
 
     .custom-input {
@@ -51,7 +56,7 @@
     }
 
     .custom-input:focus {
-        border-color: #ff6b6b; 
+        border-color: #ff6b6b;
         box-shadow: none;
     }
 
@@ -68,7 +73,7 @@
         background-color: #ff6b6b;
         color: white;
     }
-    
+
     .btn-signin-link {
         color: #ff6b6b;
         font-weight: 700;
@@ -86,7 +91,7 @@
 
 <div class="container d-flex justify-content-center align-items-center py-5 mt-1">
     <div class="signup-wide-wrapper shadow-sm border-0 d-flex overflow-hidden">
-        
+
         <div class="signup-image-side d-none d-lg-block">
             <div class="image-overlay">
                 <h2 class="fw-bold">Fresh Food,<br>Fast Delivery.</h2>
@@ -97,45 +102,52 @@
         <div class="signup-form-side">
             <h2 class="fw-bold mb-2" style="color: #ff6b6b;">Create an account</h2>
             <p class="text-muted small mb-4">Nice to meet you! Please enter your details to join us.</p>
-            
-            <form action="{{ route('signup.submit') }}" method="POST">
+
+            <form action="{{ route('signup.submit') }}" method="POST" onsubmit="handleSignup()">
                 @csrf
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label small fw-bold">First Name</label>
-                            <input type="text" name="first_name" class="form-control custom-input" placeholder="Juan" required>
+                            <input type="text" id="fname" name="fname" class="form-control custom-input" placeholder="Juan" required>
+                            @error('fname') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">E-mail</label>
-                            <input type="email" name="email" class="form-control custom-input" placeholder="juan@email.com" required>
+                            <label class="form-label small fw-bold">Email</label>
+                            <input type="email" id="email" name="email" class="form-control custom-input" placeholder="juan@email.com" required>
+                            @error('email') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Birthday</label>
-                            <input type="date" name="birthday" class="form-control custom-input" required>
+                            <input type="date" name="bday" class="form-control custom-input" required>
+                            @error('bday') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Address</label>
-                            <input type="text" name="address" class="form-control custom-input" placeholder="Street, City" required>
+                            <input type="text" id="address" name="address" class="form-control custom-input" placeholder="City, Region" required>
+                            @error('address') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                     </div>
 
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Last Name</label>
-                            <input type="text" name="last_name" class="form-control custom-input" placeholder="Dela Cruz" required>
+                            <input type="text" id="lname" name="lname" class="form-control custom-input" placeholder="Dela Cruz" required>
+                            @error('lname') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Password</label>
                             <input type="password" name="password" class="form-control custom-input" placeholder="••••••••" required>
+                            @error('password') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold d-block" required>Gender</label>
+                            <label class="form-label small fw-bold d-block">Gender</label>
                             <div class="d-flex flex-column gap-1 mt-2">
-                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" value="male" id="m"><label class="form-check-label small" for="m">Male</label></div>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" value="female" id="f"><label class="form-check-label small" for="f">Female</label></div>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" value="other" id="o"><label class="form-check-label small" for="o">Other</label></div>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" value="male" id="m"><label class="form-check-label small" for="m" required>Male</label></div>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" value="female" id="f"><label class="form-check-label small" for="f" required>Female</label></div>
+                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" value="other" id="o"><label class="form-check-label small" for="o" required>Other</label></div>
                             </div>
+                            @error('gender') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                     </div>
                 </div>
@@ -152,5 +164,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    function handleSignup() {
+        const fname = document.getElementById('fname').value;
+        const lname = document.getElementById('lname').value;
+        const fullName = `${fname} ${lname}`;
+
+        localStorage.setItem('user_name', fullName);
+        localStorage.setItem('user_email', document.getElementById('email').value);
+        localStorage.setItem('user_address', document.getElementById('address').value);
+    }
+</script>
 
 @endsection

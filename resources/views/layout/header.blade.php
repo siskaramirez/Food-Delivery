@@ -46,7 +46,7 @@
         color: #ff6b6b;
         border-bottom: 2px solid #ff6b6b;
     }
-    
+
     .search-container {
         position: relative;
         margin-left: 20px;
@@ -102,13 +102,16 @@
     }
 
     .profile-circle {
-        width: 38px;
-        height: 38px;
+        width: 38px; /*45*/
+        height: 38px; /*45*/
         background-color: #ddd;
         border-radius: 50%;
         overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         border: 2px solid #ddd;
-        margin-left: 15px;
+        /*margin-left: 15px;*/
     }
 
     .profile-circle img {
@@ -163,7 +166,7 @@
                     <div class="nav-item dropdown">
                         <a class="dropdown-toggle p-0" href="#" id="profileDrop" role="button" data-bs-toggle="dropdown">
                             <div class="profile-circle">
-                                <img src="{{ $user['profile_pix'] ?? asset('images/profile.jpg') }}" alt="Profile">
+                                <img src="{{ asset('images/profile.jpg') }}" alt="Profile">
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
@@ -172,7 +175,9 @@
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a class="dropdown-item text-danger" href="{{ route('signin.page') }}">Logout</a></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{{ route('signin.page') }}" onclick="handleLogout()">Logout</a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -198,4 +203,8 @@
         }
     }
     document.addEventListener('DOMContentLoaded', updateHeaderCartCount);
+
+    function handleLogout() {
+        localStorage.clear();
+    }
 </script>

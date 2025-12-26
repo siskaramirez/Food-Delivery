@@ -69,6 +69,31 @@ class PageController extends Controller
         return view('page.profile', compact('user'));
     }
 
+    public function edit()
+    {
+        $user = $this->getUsers();
+
+        return view('page.edit', compact('user'));
+    }
+
+    public function update(Request $request)
+    {
+        $rules = [
+            'name' => 'required|string|max:255',
+            'address' => 'required',
+            'phone' => 'required|numeric|digits:11',
+        ];
+
+        $messages = [
+            'phone.numeric'  => 'The phone field must contain numbers only.',
+            'phone.digits'   => 'The phone field must be 11 digits.',
+        ];
+
+        $request->validate($rules, $messages);
+
+        return redirect()->route('profile.page');
+    }
+
     public function cart()
     {
         $user = $this->getUsers();
@@ -168,15 +193,13 @@ class PageController extends Controller
 
     private function getUsers()
     {
-        $savedLocation = session('user_location', 'No address set yet');
-
         return [
-            'name' => 'Juan Dela Cruz',
-            'email' => 'juan.delacruz@email.com',
-            'phone' => '+63 912 345 6789',
-            'address' => $savedLocation,
-            'joined' => 'December 2024',
-            'profile_pix' => 'https://ui-avatars.com/api/?name=Juan+Dela+Cruz&background=ff6b6b&color=fff'
+            'name' => 'Guest User',
+            'email' => 'No email address set yet',
+            'phone' => 'No phone number set yet',
+            'address' => 'No address set yet',
+            'joined' => date('F Y'),
+            'profile_pix' => asset('images/profile.jpg')
         ];
     }
 }

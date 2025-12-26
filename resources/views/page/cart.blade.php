@@ -112,9 +112,7 @@
                             <option value="2">Digital Wallet</option>
                         </select>
                     </div>
-
-                    <hr class="my-4" style="border-top: 2px dashed #ddd;">
-
+                    
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Subtotal</span>
                         <span class="fw-bold" id="subtotal-display">₱0</span>
