@@ -128,15 +128,17 @@
                     @error('email') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
-                <div class="mb-1">
+                <div class="mb-1 mb-4">
                     <label class="form-label small fw-bold">Password</label>
                     <input type="password" name="password" class="form-control custom-input" placeholder="Enter password" required>
                     @error('password') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
+                <!--
                 <div class="text-end mb-4">
                     <a href="#" class="small text-muted">Forgot password?</a>
                 </div>
+                -->
 
                 <button type="submit" class="btn btn-signin-submit w-100 py-2 fw-bold">Sign In</button>
             </form>

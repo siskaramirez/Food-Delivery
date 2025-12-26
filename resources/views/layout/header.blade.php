@@ -31,20 +31,38 @@
     .center-nav {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 20px;
     }
 
     .nav-link {
         color: #666;
         font-weight: 600;
+        padding: 5px 0 !important;
         margin: 0 10px;
-        transition: all 0.3s;
-        border-bottom: 2px solid transparent;
+        transition: color 0.3s;
+        position: relative;
+        text-decoration: none;
     }
 
-    .nav-link:hover {
+    .nav-link:hover,
+    .nav-link.active {
         color: #ff6b6b;
-        border-bottom: 2px solid #ff6b6b;
+    }
+
+    .nav-link::after {
+        content: "";
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: #ff6b6b;
+        transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after,
+    .nav-link.active::after {
+        width: 100%;
     }
 
     .search-container {
@@ -72,17 +90,35 @@
 
     .btn-cart {
         font-size: 1.3rem;
-        color: #ff6b6b;
+        color: #f68d8dff;
         font-weight: 700;
         text-decoration: none;
         margin-right: 15px;
-        transition: all 0.3s;
-        padding-bottom: 1px;
-        border-bottom: 2px solid transparent;
+        transition: color 0.3s;
+        position: relative;
+        padding-bottom: 5px;
+        text-decoration: none;
     }
 
-    .btn-cart:hover {
-        border-bottom: 2px solid #ff6b6b;
+    .btn-cart:hover,
+    .btn-cart.active {
+        color: #f95d5dff ;
+    }
+
+    .btn-cart::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 3px;
+        background-color: #ff6b6b;
+        transition: width 0.3s ease;
+    }
+
+    .btn-cart:hover::after,
+    .btn-cart.active::after {
+        width: 100%;
     }
 
     .btn-signup {
@@ -102,8 +138,10 @@
     }
 
     .profile-circle {
-        width: 38px; /*45*/
-        height: 38px; /*45*/
+        width: 38px;
+        /*45*/
+        height: 38px;
+        /*45*/
         background-color: #ddd;
         border-radius: 50%;
         overflow: hidden;
@@ -138,13 +176,13 @@
                 <div class="mx-auto d-flex align-items-center">
                     <ul class="navbar-nav center-nav">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('home.page') }}">Home</a>
+                            <a class="nav-link {{ request()->routeIs('home.page') ? 'active' : '' }}" href="{{ route('home.page') }}">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('menu.page') }}">Menu</a>
+                            <a class="nav-link {{ request()->routeIs('menu.page') ? 'active' : '' }}" href="{{ route('menu.page') }}">Menu</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('about.page') }}">About Us</a>
+                            <a class="nav-link {{ request()->routeIs('about.page') ? 'active' : '' }}" href="{{ route('about.page') }}">About Us</a>
                         </li>
                     </ul>
                     <form action="{{ route('menu.page') }}" method="GET" class="search-container d-none d-lg-block">
@@ -160,7 +198,7 @@
                 </div>
 
                 <div class="d-flex align-items-center">
-                    <a href="{{ route('cart.page') }}" class="btn-cart" id="header-cart-btn">My Cart<span id="header-cart-count" class="d-none ms-1">0</span></a>
+                    <a href="{{ route('cart.page') }}" class="btn-cart {{ request()->routeIs('cart.page') ? 'active' : '' }}" id="header-cart-btn">My Cart<span id="header-cart-count" class="d-none ms-1">0</span></a>
                     <a href="{{ route('signup.page') }}" class="btn btn-signup ms-3 me-3">Sign Up</a>
 
                     <div class="nav-item dropdown">

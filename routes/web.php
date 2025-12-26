@@ -28,6 +28,9 @@ Route::post('/user/signup', [AuthController::class, 'signup'])->name('signup.sub
 Route::get('/user/signin', [AuthController::class, 'showSignin'])->name('signin.page');
 Route::post('/user/signin', [AuthController::class, 'signin'])->name('signin.submit');
 
+//Route::get('/forgot-password', [AuthController::class, 'showSignin'])->name('password.request');
+//Route::post('/forgot-password', [AuthController::class, 'handleReset'])->name('password.update');
+
 
 //route for admin
 

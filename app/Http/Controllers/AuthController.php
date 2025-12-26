@@ -34,6 +34,9 @@ class AuthController extends Controller
     public function showSignin()
     {
         return view('auth.signin');
+        /*$isForgotPass = request()->routeIs('password.request');
+
+        return view('auth.signin', compact('isForgotPass'));*/
     }
 
     public function signin(Request $request)
@@ -45,4 +48,6 @@ class AuthController extends Controller
 
         return redirect()->route('home.page');
     }
+
+    
 }

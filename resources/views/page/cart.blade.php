@@ -96,12 +96,10 @@
 
                     <div class="mb-4">
                         <label class="info-label mb-2">Delivery Address</label>
-                        <div class="bg-white p-3 rounded-3 shadow-sm d-flex align-items-center">
-                            <p class="mb-0 fw-bold small flex-grow-1" id="cart-delivery-address">
-                                {{ $user['address'] }}
-                            </p>
-                            <a href="{{ route('profile.page') }}" class="text-danger small text-decoration-none fw-bold">Edit</a>
-                        </div>
+                        <select class="form-select border-0 shadow-sm rounded-3 fw-bold p-3" style="font-size: 0.9rem;" id="delivery-address-select" onchange="handleAddressChange()">
+                            <option id="synced-address-option" value="default">Loading address...</option>
+                            <option value="edit-profile">Use another address</option>
+                        </select>
                     </div>
 
                     <div class="mb-4">
@@ -112,7 +110,7 @@
                             <option value="2">Digital Wallet</option>
                         </select>
                     </div>
-                    
+
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Subtotal</span>
                         <span class="fw-bold" id="subtotal-display">₱0</span>
@@ -215,10 +213,24 @@
     }
 
     function syncAddress() {
+        const addressOption = document.getElementById('synced-address-option');
         const savedAddress = localStorage.getItem('user_address');
-        const addressDisplay = document.getElementById('cart-delivery-address');
-        if (savedAddress && addressDisplay) {
-            addressDisplay.innerText = savedAddress;
+
+        if (addressOption) {
+            if (savedAddress && savedAddress.trim() !== "") {
+                addressOption.innerText = savedAddress;
+                addressOption.value = savedAddress;
+            } else {
+                addressOption.innerText = "No address set yet";
+                addressOption.value = "";
+            }
+        }
+    }
+
+    function handleAddressChange() {
+        const select = document.getElementById('delivery-address-select');
+        if (select.value === "edit-profile") {
+            window.location.href = "{{ route('profile.page') }}";
         }
     }
 
