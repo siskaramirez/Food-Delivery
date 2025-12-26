@@ -2,16 +2,14 @@
 @section('content')
 
 <style>
-    /* Wide Wrapper Styling */
     .signup-wide-wrapper {
         background: white;
         border-radius: 30px;
         width: 100%;
-        max-width: 1100px; /* Wide format */
+        max-width: 1100px;
         min-height: 500px;
     }
 
-    /* Left Side Image Styling */
     .signup-image-side {
         width: 40%;
         background: url('https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=1000&auto=format&fit=crop');
@@ -21,7 +19,7 @@
     .image-overlay {
         position: absolute;
         inset: 0;
-        background: rgba(0, 0, 0, 0.30); /* Darkens image slightly for text readability */
+        background: rgba(0, 0, 0, 0.30);
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
@@ -29,7 +27,6 @@
         color: white;
     }
 
-    /* Form Side Styling */
     .signup-form-side {
         width: 60%;
         padding: 50px;
@@ -62,7 +59,7 @@
         background-color: transparent;
         color: #ff6b6b;
         border: 2px solid #ff6b6b;
-        border-radius: 12px; /* Matches the input rounding */
+        border-radius: 12px;
         font-size: 1.1rem;
         transition: all 0.3s ease;
     }
@@ -71,8 +68,7 @@
         background-color: #ff6b6b;
         color: white;
     }
-
-    /* Login-style Hover Link */
+    
     .btn-signin-link {
         color: #ff6b6b;
         font-weight: 700;
@@ -88,7 +84,7 @@
     }
 </style>
 
-<div class="container d-flex justify-content-center align-items-center py-5">
+<div class="container d-flex justify-content-center align-items-center py-5 mt-1">
     <div class="signup-wide-wrapper shadow-sm border-0 d-flex overflow-hidden">
         
         <div class="signup-image-side d-none d-lg-block">

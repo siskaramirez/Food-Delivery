@@ -11,24 +11,6 @@
 <body>
     @include('layout.header')
     @yield('content')
-    <script>
-        function updateHeaderCartCount() {
-            const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
-
-            // .length ang gagamitin para makuha kung ilang unique items ang nasa cart
-            const uniqueItemsCount = cart.length;
-
-            const headerCount = document.getElementById('header-cart-count');
-            if (headerCount) {
-                if (uniqueItemsCount > 0) {
-                    headerCount.innerText = `(${uniqueItemsCount})`;
-                    headerCount.classList.remove('d-none');
-                } else {
-                    headerCount.classList.add('d-none');
-                }
-            }
-        }
-    </script>
     @include('layout.footer')
 </body>
 

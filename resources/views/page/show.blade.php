@@ -2,7 +2,6 @@
 @section('content')
 
 <style>
-    /* The Big Main Container */
     .main-show-card {
         background: white;
         border-radius: 40px;
@@ -18,7 +17,6 @@
         justify-content: center;
     }
 
-    /* Peach Background for Image */
     .food-img-bg-container {
         background-color: #efc9b7ff;
         border-radius: 30px;
@@ -78,7 +76,6 @@
         color: #ff6b6b;
     }
 
-    /* Large Quantity Selector */
     .qty-selector-lg {
         background: #f8f9fa;
         padding: 10px;
@@ -115,8 +112,7 @@
         font-weight: 700;
         font-size: 1.4rem;
     }
-
-    /* Add to Cart Button */
+    
     .btn-add-cart-lg {
         background-color: #ff6b6b;
         color: white;
@@ -196,68 +192,6 @@
                 </button>
             </div>
 
-            <script>
-                function updateOrder(change, basePrice) {
-                    const qtyInput = document.getElementById('main-qty-input');
-                    const priceDisplay = document.getElementById('display-price');
-                    const btnText = document.getElementById('btn-text');
-                    const cartBtn = document.getElementById('main-cart-btn');
-
-                    let currentQty = parseInt(qtyInput.value);
-                    let newQty = currentQty + change;
-
-                    if (newQty >= 1) {
-                        qtyInput.value = newQty;
-
-                        let totalAmount = basePrice * newQty;
-
-                        priceDisplay.innerText = `₱${totalAmount.toLocaleString()}`;
-
-                        btnText.innerText = `Add to Cart (${newQty})`;
-
-                        cartBtn.style.transform = 'scale(1.03)';
-                        setTimeout(() => {
-                            cartBtn.style.transform = 'scale(1)';
-                        }, 100);
-                    }
-                }
-
-                document.getElementById('main-cart-btn').addEventListener('click', function() {
-                    const qtyInput = document.getElementById('main-qty-input');
-
-                    const foodItem = {
-                        id: "{{ $food['id'] }}",
-                        name: "{{ $food['name'] }}",
-                        price: parseFloat("{{ $food['price'] }}"),
-                        image: "{{ $food['image'] }}",
-                        qty: parseInt(qtyInput.value)
-                    };
-
-                    let cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
-
-                    const existingItemIndex = cart.findIndex(item => item.id === foodItem.id);
-                    if (existingItemIndex > -1) {
-                        cart[existingItemIndex].qty += foodItem.qty;
-                    } else {
-                        cart.push(foodItem);
-                    }
-
-                    localStorage.setItem('eatsway_cart', JSON.stringify(cart));
-
-                    updateHeaderCartCount();
-                });
-
-                function updateHeaderCartCount() {
-                    const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
-                    const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
-                    const headerCount = document.getElementById('header-cart-count');
-                    if (headerCount) {
-                        headerCount.innerText = `(${totalItems})`;
-                        headerCount.classList.remove('d-none');
-                    }
-                }
-            </script>
-
             <div class="mt-5 pt-4 border-top">
                 <div class="d-flex gap-5" style="font-size: 1.1rem;">
                     <div class="text-center ms-4">
@@ -273,5 +207,67 @@
         </div>
     </div>
 </div>
+
+<script>
+    function updateOrder(change, basePrice) {
+        const qtyInput = document.getElementById('main-qty-input');
+        const priceDisplay = document.getElementById('display-price');
+        const btnText = document.getElementById('btn-text');
+        const cartBtn = document.getElementById('main-cart-btn');
+
+        let currentQty = parseInt(qtyInput.value);
+        let newQty = currentQty + change;
+
+        if (newQty >= 1) {
+            qtyInput.value = newQty;
+
+            let totalAmount = basePrice * newQty;
+
+            priceDisplay.innerText = `₱${totalAmount.toLocaleString()}`;
+
+            btnText.innerText = `Add to Cart (${newQty})`;
+
+            cartBtn.style.transform = 'scale(1.03)';
+            setTimeout(() => {
+                cartBtn.style.transform = 'scale(1)';
+            }, 100);
+        }
+    }
+
+    document.getElementById('main-cart-btn').addEventListener('click', function() {
+        const qtyInput = document.getElementById('main-qty-input');
+
+        const foodItem = {
+            id: "{{ $food['id'] }}",
+            name: "{{ $food['name'] }}",
+            price: parseFloat("{{ $food['price'] }}"),
+            image: "{{ $food['image'] }}",
+            qty: parseInt(qtyInput.value)
+        };
+
+        let cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+
+        const existingItemIndex = cart.findIndex(item => item.id === foodItem.id);
+        if (existingItemIndex > -1) {
+            cart[existingItemIndex].qty += foodItem.qty;
+        } else {
+            cart.push(foodItem);
+        }
+
+        localStorage.setItem('eatsway_cart', JSON.stringify(cart));
+
+        updateHeaderCartCount();
+    });
+
+    function updateHeaderCartCount() {
+        const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+        const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+        const headerCount = document.getElementById('header-cart-count');
+        if (headerCount) {
+            headerCount.innerText = `(${totalItems})`;
+            headerCount.classList.remove('d-none');
+        }
+    }
+</script>
 
 @endSection

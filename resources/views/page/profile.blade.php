@@ -2,27 +2,23 @@
 @section('content')
 
 <style>
-    /* Main Card Layout */
     .main-profile-card {
         min-height: 500px;
         border-radius: 30px;
         background-color: white;
     }
 
-    /* Sidebar Gradient - Clean & Professional */
     .profile-sidebar {
         background: linear-gradient(130deg, #2d3436ed 0%, #f06e6eef 100%);
         color: white;
     }
 
-    /* Avatar Styling */
     .profile-avatar-container img {
         width: 150px;
         border: 5px solid white;
         transition: transform 0.3s ease;
     }
 
-    /* Info Labels */
     .info-label {
         color: #ff6b6b;
         font-size: 0.85rem;
@@ -31,7 +27,6 @@
         letter-spacing: 1px;
     }
 
-    /* Buttons */
     .btn-edit-profile {
         background-color: white;
         color: #333;
@@ -45,12 +40,10 @@
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 
-    /* Stats Boxes */
     .stat-box {
         background-color: #f8e9e1ff;
     }
-
-    /* Responsive adjustment */
+    
     @media (max-width: 991px) {
         .main-profile-card {
             flex-direction: column;
@@ -64,7 +57,7 @@
     }
 </style>
 
-<div class="container py-5 mt-4">
+<div class="container py-5 mt-2">
     <div class="main-profile-card shadow-sm border-0 d-flex flex-wrap overflow-hidden">
         
         <div class="col-lg-4 p-5 d-flex flex-column align-items-center text-center profile-sidebar">

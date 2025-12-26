@@ -2,12 +2,11 @@
 @section('content')
 
 <style>
-    /* Layout Styling */
     .signin-wide-wrapper {
         background: white;
         border-radius: 30px;
         width: 100%;
-        max-width: 1100px; /* Slightly narrower than signup since there are fewer fields */
+        max-width: 1100px;
         min-height: 500px;
     }
 
@@ -34,7 +33,6 @@
         text-align: center;
     }
 
-    /* Input & Button Styling */
     .custom-input {
         background-color: #fcfcfc;
         border: 2px solid #f0f0f0;
@@ -60,8 +58,7 @@
         color: white;
         background-color: #ff6b6b;
     }
-
-    /* Links & Hovers */
+    
     .hover-red:hover {
         color: #ff6b6b;
     }

@@ -7,9 +7,7 @@
     .navbar-floating-wrapper {
         margin-top: 20px;
         background: rgba(255, 255, 255, 0.7);
-        /* Low opacity white */
         backdrop-filter: blur(10px);
-        /* Glass effect */
         -webkit-backdrop-filter: blur(10px);
         border-radius: 50px;
         padding: 5px 30px;
@@ -30,7 +28,6 @@
         margin-left: 15px;
     }
 
-    /* Centering the center-nav items */
     .center-nav {
         display: flex;
         align-items: center;
@@ -49,8 +46,7 @@
         color: #ff6b6b;
         border-bottom: 2px solid #ff6b6b;
     }
-
-    /* Search Bar Design matching your image */
+    
     .search-container {
         position: relative;
         margin-left: 20px;
@@ -184,3 +180,22 @@
         </nav>
     </div>
 </div>
+
+<script>
+    function updateHeaderCartCount() {
+        const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+
+        const totalQuantity = cart.reduce((sum, item) => sum + item.qty, 0);
+
+        const headerCount = document.getElementById('header-cart-count');
+        if (headerCount) {
+            if (totalQuantity > 0) {
+                headerCount.innerText = `(${totalQuantity})`;
+                headerCount.classList.remove('d-none');
+            } else {
+                headerCount.classList.add('d-none');
+            }
+        }
+    }
+    document.addEventListener('DOMContentLoaded', updateHeaderCartCount);
+</script>
