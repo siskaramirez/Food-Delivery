@@ -127,7 +127,6 @@
         color: white;
         transform: scale(1.07);
     }
-    
 </style>
 
 <div class="container menu-section">
@@ -175,24 +174,24 @@
 
     <div class="row g-4 justify-content-center">
         @foreach($foods as $food)
-            <div class="col-12 col-sm-6 col-lg-4">
-                <div class="menu-card text-center">
-                    <div class="food-img-container">
-                        <img src="{{ $food['image'] }}" alt="{{ $food['name'] }}" class="food-img">
-                    </div>
-                    
-                    <h5 class="food-title mb-1">{{ $food['name'] }}</h5>
-                    <p class="text-muted small mb-4">{{ $food['description'] }}</p>
-                    
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="price-tag">₱{{ number_format($food['price'], 0) }}</span>
-                        
-                        <a href="{{ route('menu.detail', $food['id']) }}" class="btn btn-order">
-                            View Order
-                        </a>
-                    </div>
-                </div> 
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="menu-card text-center">
+                <div class="food-img-container">
+                    <img src="{{ $food['image'] }}" alt="{{ $food['name'] }}" class="food-img">
+                </div>
+
+                <h5 class="food-title mb-1">{{ $food['name'] }}</h5>
+                <p class="text-muted small mb-4">{{ $food['description'] }}</p>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="price-tag">₱{{ number_format($food['price'], 0) }}</span>
+
+                    <a href="{{ route('menu.detail', $food['id']) }}" class="btn btn-order">
+                        View Order
+                    </a>
+                </div>
             </div>
+        </div>
         @endforeach
     </div>
 </div>
@@ -214,6 +213,27 @@
             displayPin.innerText = savedAddress;
         }
     });
+    `
+    function addToCart(name, price, image) {
+        let cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+
+        const existingItem = cart.find(item => item.name === name);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cart.push({
+                name,
+                price,
+                image,
+                quantity: 1
+            });
+        }
+
+        localStorage.setItem('eatsway_cart', JSON.stringify(cart));
+        alert(name + " added to cart!");
+    }
+    `
 </script>
 
 @endSection

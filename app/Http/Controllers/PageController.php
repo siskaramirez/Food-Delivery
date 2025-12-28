@@ -94,11 +94,25 @@ class PageController extends Controller
         return redirect()->route('profile.page');
     }
 
+    public function orders()
+    {
+        $user = $this->getUsers();
+
+        return view('page.orders', compact('user'));
+    }
+
     public function cart()
     {
         $user = $this->getUsers();
 
         return view('page.cart', compact('user'));
+    }
+
+    public function checkout()
+    {
+        $user = $this->getUsers();
+
+        return view('page.checkout', compact('user'));
     }
 
     private function getFoods()

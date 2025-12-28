@@ -97,17 +97,17 @@
                     <div class="mb-4">
                         <label class="info-label mb-2">Delivery Address</label>
                         <select class="form-select border-0 shadow-sm rounded-3 fw-bold p-3" style="font-size: 0.9rem;" id="delivery-address-select" onchange="handleAddressChange()">
-                            <option id="synced-address-option" value="default">Loading address...</option>
+                            <option id="synced-address-option" value="">{{ $user['address'] }}</option>
                             <option value="edit-profile">Use another address</option>
                         </select>
                     </div>
 
                     <div class="mb-4">
                         <label class="info-label mb-2">Mode of Payment (MOP)</label>
-                        <select class="form-select border-0 shadow-sm rounded-3 fw-bold p-3" style="font-size: 0.9rem;">
-                            <option selected>Cash on Delivery (COD)</option>
-                            <option value="1">Credit/Debit Card</option>
-                            <option value="2">Digital Wallet</option>
+                        <select id="payment-method-select" class="form-select border-0 shadow-sm rounded-3 fw-bold p-3" style="font-size: 0.9rem;">
+                            <option value="Cash on Delivery (COD)" selected>Cash on Delivery (COD)</option>
+                            <option value="Credit/Debit Card">Credit/Debit Card</option>
+                            <option value="Digital Wallet">Digital Wallet</option>
                         </select>
                     </div>
 
@@ -125,7 +125,7 @@
                         <h4 class="fw-bold text-danger" id="total-display">₱0</h4>
                     </div>
 
-                    <button class="btn btn-checkout w-100 rounded-pill py-3 fw-bold shadow-sm">
+                    <button class="btn btn-checkout w-100 rounded-pill py-3 fw-bold shadow-sm" onclick="processCheckout()">
                         Checkout Order
                     </button>
                 </div>
@@ -216,14 +216,9 @@
         const addressOption = document.getElementById('synced-address-option');
         const savedAddress = localStorage.getItem('user_address');
 
-        if (addressOption) {
-            if (savedAddress && savedAddress.trim() !== "") {
-                addressOption.innerText = savedAddress;
-                addressOption.value = savedAddress;
-            } else {
-                addressOption.innerText = "No address set yet";
-                addressOption.value = "";
-            }
+        if (savedAddress && savedAddress.trim() !== "") {
+            addressOption.innerText = savedAddress;
+            addressOption.value = savedAddress;
         }
     }
 
@@ -232,6 +227,21 @@
         if (select.value === "edit-profile") {
             window.location.href = "{{ route('profile.page') }}";
         }
+    }
+
+    function processCheckout() {
+        const selectedAddress = document.getElementById('delivery-address-select').value;
+        const paymentMethod = document.getElementById('payment-method-select').value;
+        const cartData = localStorage.getItem('eatsway_cart'); 
+        const cart = JSON.parse(cartData) || [];
+
+        if (cart.length === 0) {
+            alert("Your cart is empty!");
+            return;
+        }
+        
+        localStorage.setItem('user_payment', paymentMethod);
+        window.location.href = "{{ route('cart.checkout') }}";
     }
 
     function removeItem(index) {

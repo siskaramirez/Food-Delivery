@@ -13,7 +13,9 @@ Route::get('/home', [PageController::class, 'home'])->name('home.page');
 Route::get('/menu', [PageController::class, 'menu'])->name('menu.page');
 Route::get('/menu/{id}', [PageController::class, 'show'])->name('menu.detail');
 Route::get('/about', [PageController::class, 'about'])->name('about.page');
+Route::get('/orders', [PageController::class, 'orders'])->name('orders.page');
 Route::get('/cart', [PageController::class, 'cart'])->name('cart.page');
+Route::get('/cart/checkout', [PageController::class, 'checkout'])->name('cart.checkout');
 
 Route::get('/profile', [PageController::class, 'profile'])->name('profile.page');
 Route::get('/profile/edit', [PageController::class, 'edit'])->name('profile.edit');
