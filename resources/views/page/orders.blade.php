@@ -150,32 +150,60 @@
         color: white;
         transform: scale(1.05);
     }
+
+    /* WARNING BUTTON */
+
     .custom-dialog {
-    border: none;
-    border-radius: 15px;
-    padding: 25px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
+        border: none;
+        border-radius: 15px;
+        padding: 25px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
 
-.custom-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px); /* Modern blur effect */
-}
+    .custom-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(1px);
+    }
 
-.dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-}
+    .dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
 
-/* Baguhin ang kulay base sa theme ng site mo */
-.btn-confirm { background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-.btn-cancel { background: #f8f9fa; border: 1px solid #ddd; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+    .btn-confirm {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .btn-confirm:hover {
+        background: #e35664ff;
+        border: 1px solid #333;
+        color: white;
+    }
+
+    .btn-cancel {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .btn-cancel:hover {
+        background: #ecececff;
+        border: 1px solid #333;
+    }
 </style>
 
+<!-- WARNING BUTTON -->
 <dialog id="deleteOrderModal" class="custom-dialog">
     <div class="dialog-content">
         <h3>Confirm Deletion</h3>
@@ -187,6 +215,7 @@
     </div>
 </dialog>
 
+<!-- MAIN -->
 <div class="orders-wrapper">
     <div class="orders-main-container">
 
@@ -254,29 +283,29 @@
 
     let orderToDelete = null; // Dito natin itatabi pansamantala yung ID
 
-function deleteOrder(orderNum) {
-    orderToDelete = orderNum; // I-save kung anong order ang tinutukoy
-    const modal = document.getElementById('deleteOrderModal');
-    modal.showModal(); // I-display ang custom modal
-}
-
-// Logic para sa CANCEL button
-document.getElementById('btnCancel').onclick = function() {
-    document.getElementById('deleteOrderModal').close();
-    orderToDelete = null;
-};
-
-// Logic para sa CONFIRM button
-document.getElementById('btnConfirmDelete').onclick = function() {
-    if (orderToDelete) {
-        let history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
-        history = history.filter(o => o.orderNum !== orderToDelete);
-        localStorage.setItem('eatsway_history', JSON.stringify(history));
-        
-        document.getElementById('deleteOrderModal').close();
-        location.reload(); // Refresh para makita ang update
+    function deleteOrder(orderNum) {
+        orderToDelete = orderNum; // I-save kung anong order ang tinutukoy
+        const modal = document.getElementById('deleteOrderModal');
+        modal.showModal(); // I-display ang custom modal
     }
-};
+
+    // Logic para sa CANCEL button
+    document.getElementById('btnCancel').onclick = function() {
+        document.getElementById('deleteOrderModal').close();
+        orderToDelete = null;
+    };
+
+    // Logic para sa CONFIRM button
+    document.getElementById('btnConfirmDelete').onclick = function() {
+        if (orderToDelete) {
+            let history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
+            history = history.filter(o => o.orderNum !== orderToDelete);
+            localStorage.setItem('eatsway_history', JSON.stringify(history));
+
+            document.getElementById('deleteOrderModal').close();
+            location.reload(); // Refresh para makita ang update
+        }
+    };
 </script>
 
 @endSection
