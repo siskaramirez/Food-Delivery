@@ -190,7 +190,7 @@
     }
 
     .btn-cancel {
-        background: #f8f9fa;
+        background: #ecececff;
         border: 1px solid #ddd;
         padding: 10px 20px;
         border-radius: 8px;
@@ -281,21 +281,19 @@
     `).join('');
     });
 
-    let orderToDelete = null; // Dito natin itatabi pansamantala yung ID
+    let orderToDelete = null;
 
     function deleteOrder(orderNum) {
-        orderToDelete = orderNum; // I-save kung anong order ang tinutukoy
+        orderToDelete = orderNum;
         const modal = document.getElementById('deleteOrderModal');
-        modal.showModal(); // I-display ang custom modal
+        modal.showModal();
     }
 
-    // Logic para sa CANCEL button
     document.getElementById('btnCancel').onclick = function() {
         document.getElementById('deleteOrderModal').close();
         orderToDelete = null;
     };
 
-    // Logic para sa CONFIRM button
     document.getElementById('btnConfirmDelete').onclick = function() {
         if (orderToDelete) {
             let history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
@@ -303,7 +301,7 @@
             localStorage.setItem('eatsway_history', JSON.stringify(history));
 
             document.getElementById('deleteOrderModal').close();
-            location.reload(); // Refresh para makita ang update
+            location.reload();
         }
     };
 </script>

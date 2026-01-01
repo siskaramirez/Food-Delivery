@@ -69,6 +69,58 @@
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
     }
 
+    /* WARNING BUTTON */
+    .custom-dialog {
+        border: none;
+        border-radius: 15px;
+        padding: 25px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        background: #fff;
+    }
+
+    .custom-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(1px);
+    }
+
+    .dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-confirm {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-confirm:hover {
+        background: #e35664ff;
+        border: 1px solid #333;
+    }
+
+    .btn-cancel {
+        background: #ecececff;
+        border: 1px solid #ddd;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-cancel:hover {
+        background: #ecececff;
+        border: 1px solid #333;
+    }
+
     @media (max-width: 991px) {
         .main-cart-wrapper {
             padding: 30px 20px !important;
@@ -76,6 +128,19 @@
     }
 </style>
 
+<!-- WARNING BUTTON -->
+<dialog id="removeItemModal" class="custom-dialog">
+    <div class="dialog-content">
+        <h3>Confirm Deletion</h3>
+        <p>Are you sure you want to remove this item from your cart?</p>
+        <div class="dialog-actions">
+            <button id="btnCancelRemove" class="btn-cancel">Cancel</button>
+            <button id="btnConfirmRemove" class="btn-confirm">Remove</button>
+        </div>
+    </div>
+</dialog>
+
+<!-- MAIN -->
 <div class="container py-5">
     <div class="main-cart-wrapper shadow-sm border-0 bg-white p-5">
 
@@ -151,6 +216,38 @@
     document.addEventListener('DOMContentLoaded', function() {
         renderCart();
         syncAddress();
+
+        let itemIndexToRemove = null;
+
+        window.removeItem = function(index) {
+            itemIndexToRemove = index;
+            const modal = document.getElementById('removeItemModal');
+            if (modal) {
+                modal.showModal();
+            }
+        };
+
+        document.getElementById('btnCancelRemove').onclick = function() {
+            document.getElementById('removeItemModal').close();
+            itemIndexToRemove = null;
+        };
+
+        document.getElementById('btnConfirmRemove').onclick = function() {
+            if (itemIndexToRemove !== null) {
+                let cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+
+                cart.splice(itemIndexToRemove, 1);
+                localStorage.setItem('eatsway_cart', JSON.stringify(cart));
+
+                if (typeof updateHeaderCartCount === "function") {
+                    updateHeaderCartCount();
+                }
+
+                document.getElementById('removeItemModal').close();
+                renderCart();
+                itemIndexToRemove = null;
+            }
+        };
     });
 
     function renderCart() {
@@ -280,7 +377,7 @@
 
         localStorage.setItem('temp_address', finalAddress);
         localStorage.setItem('user_payment', paymentMethod);
-        
+
         const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
         const history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
 
@@ -288,7 +385,7 @@
             alert("Your cart is empty!");
             return;
         }
-        
+
         if (history.filter(order => order.status !== 'Completed').length >= 2) {
             alert("You currently have 2 active orders. Please note that refunds are not possible at this time. \n\nPlease come back and order again once your previous orders are completed to keep track of your history.");
             return;
