@@ -38,8 +38,4 @@ Route::get('/payment', [AuthController::class, 'payment'])->name('payment.page')
 
 //route for admin
 
-/*
-Route::get('/blog', [UserController::class, 'getAllPosts']);
-Route::get('/blog/create', [UserController::class, 'create']); 
-Route::post('/blog/save', [UserController::class, 'save']);
-*/
+
