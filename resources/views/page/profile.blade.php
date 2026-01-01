@@ -15,7 +15,7 @@
 
     .profile-avatar-container img {
         width: 150px;
-        border: 2px solid white;
+        border: 3px solid white;
         transition: transform 0.3s ease;
     }
 
@@ -79,7 +79,7 @@
                 <img src="{{ $user['profile_pix'] }}" alt="Profile" class="rounded-circle shadow-sm">
             </div>
             <h2 class="fw-bold mb-2 text-white" id="sidebar-name">{{ $user['name'] }}</h2>
-            <p class="text-white mb-4">Member since {{ $user['joined'] }}</p>
+            <p class="text-white mb-4 d-none" id="member-since">Member since {{ $user['joined'] }}</p>
 
             <a href="{{ route('profile.edit') }}" class="btn btn-edit-profile btn-danger rounded-pill px-5 w-100 fw-bold mt-auto mb-1">Edit Profile</a>
         </div>
@@ -129,7 +129,8 @@
             name: localStorage.getItem('user_name'),
             email: localStorage.getItem('user_email'),
             address: localStorage.getItem('user_address'),
-            phone: localStorage.getItem('user_phone')
+            phone: localStorage.getItem('user_phone'),
+            joined: localStorage.getItem('user_joined')
         };
 
         if (data.name) {
@@ -146,7 +147,17 @@
 
         if (data.email) {
             const displayEmail = document.getElementById('display-email');
-            if (displayEmail) displayEmail.innerText = data.email;
+            if (displayEmail) {
+                displayEmail.innerText = data.email;
+            }
+
+            const memberSince = document.getElementById('member-since');
+            if (memberSince) {
+                const displayJoined = data.joined || "{{ $user['joined'] }}";
+
+                memberSince.innerText = "Member since " + displayJoined;
+                memberSince.classList.remove('d-none');
+            }
         }
 
         if (data.phone) {

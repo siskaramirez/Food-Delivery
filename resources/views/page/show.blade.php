@@ -112,7 +112,7 @@
         font-weight: 700;
         font-size: 1.4rem;
     }
-    
+
     .btn-add-cart-lg {
         background-color: #ff6b6b;
         color: white;
@@ -164,7 +164,7 @@
             <nav aria-label="breadcrumb" class="mb-3" style="font-weight: bold; font-size: 1.2rem;">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('menu.page') }}" class="text-decoration-none text-muted">Menu</a></li>
-                    <li class="breadcrumb-item active text-danger fw-bold" aria-current="page">{{ $food['name'] }}</li>
+                    <li class="breadcrumb-item active text-danger fw-bold text-capitalize" aria-current="page">{{ $food['category'] }}</li>
                 </ol>
             </nav>
 
@@ -235,6 +235,13 @@
     }
 
     document.getElementById('main-cart-btn').addEventListener('click', function() {
+        const userEmail = localStorage.getItem('user_email');
+
+        if (!userEmail) {
+            window.location.href = "{{ route('signin.page') }}";
+            return;
+        }
+
         const qtyInput = document.getElementById('main-qty-input');
 
         const foodItem = {

@@ -15,25 +15,25 @@ class PageController extends Controller
 
     public function menu(Request $request)
     {
-        $allFoods = $this->getFoods();
+        $allFoods = collect($this->getFoods());
         $user = $this->getUsers();
         $search = $request->query('search');
 
         if ($search) {
-            $foods = array_filter($allFoods, function ($food) use ($search) {
+            $filtered = $allFoods->filter(function ($food) use ($search) {
                 return str_contains(strtolower($food['name']), strtolower($search));
             });
         } else {
-            $foods = $allFoods;
+            $filtered = $allFoods;
         }
+        $categories = $filtered->groupBy('category');
 
         if ($request->has('location')) {
             session(['user_location' => $request->query('location')]);
         }
-
         $location = session('user_location');
 
-        return view('page.menu', compact('foods', 'search', 'location', 'user'));
+        return view('page.menu', compact('categories', 'search', 'location', 'user'));
     }
 
     public function show($id)
@@ -97,8 +97,9 @@ class PageController extends Controller
     public function orders()
     {
         $user = $this->getUsers();
+        $driver = $this->getDrivers();
 
-        return view('page.orders', compact('user'));
+        return view('page.orders', compact('user', 'driver'));
     }
 
     public function cart()
@@ -111,8 +112,9 @@ class PageController extends Controller
     public function checkout()
     {
         $user = $this->getUsers();
+        $driver = $this->getDrivers();
 
-        return view('page.checkout', compact('user'));
+        return view('page.checkout', compact('user', 'driver'));
     }
 
     private function getFoods()
@@ -121,6 +123,7 @@ class PageController extends Controller
             [
                 'id' => 1,
                 'name' => 'Signature Burger',
+                'category' => 'food',
                 'price' => 189,
                 'description' => 'Wagyu beef with double cheddar, caramelized onions, and our secret special sauce.',
                 'image' => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500&auto=format&fit=crop'
@@ -128,6 +131,7 @@ class PageController extends Controller
             [
                 'id' => 2,
                 'name' => 'Rustic Pizza',
+                'category' => 'food',
                 'price' => 499,
                 'description' => 'Hand-tossed sourdough with fresh basil, buffalo mozzarella, and sun-ripened cherry tomatoes.',
                 'image' => 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=500&auto=format&fit=crop'
@@ -135,6 +139,7 @@ class PageController extends Controller
             [
                 'id' => 3,
                 'name' => 'Harvest Bowl',
+                'category' => 'food',
                 'price' => 249,
                 'description' => 'A vibrant mix of organic greens, roasted quinoa, chickpeas, and a honey-lemon tahini dressing.',
                 'image' => 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500&auto=format&fit=crop'
@@ -142,13 +147,15 @@ class PageController extends Controller
             [
                 'id' => 4,
                 'name' => 'Pesto Pasta',
+                'category' => 'food',
                 'price' => 299,
-                'description' => 'Creamy basil pesto with roasted pine nuts.',
-                'image' => 'https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=500&auto=format&fit=crop'
+                'description' => 'Creamy basil pesto with roasted pine nuts and Parmesan cheese.',
+                'image' => asset('images/pestopasta.jpg')
             ],
             [
                 'id' => 5,
                 'name' => 'Berry Pancakes',
+                'category' => 'food',
                 'price' => 99,
                 'description' => 'Fluffy buttermilk pancakes topped with organic maple syrup and fresh seasonal berries.',
                 'image' => 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?q=80&w=500&auto=format&fit=crop'
@@ -156,51 +163,82 @@ class PageController extends Controller
             [
                 'id' => 6,
                 'name' => 'Street Tacos',
+                'category' => 'food',
                 'price' => 149,
                 'description' => 'Three soft corn tortillas with slow-cooked carnitas, pickled onions, and fresh cilantro.',
                 'image' => 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?q=80&w=500&auto=format&fit=crop'
             ],
             [
                 'id' => 7,
-                'name' => 'Signature Burger',
-                'price' => 189,
-                'description' => 'Wagyu beef with double cheddar, caramelized onions, and our secret special sauce.',
-                'image' => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500&auto=format&fit=crop'
+                'name' => 'Lemon Iced Tea',
+                'category' => 'drink',
+                'price' => 59,
+                'description' => 'Refreshing house-blend tea with a zesty lemon kick.',
+                'image' => 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=500&auto=format&fit=crop'
             ],
             [
                 'id' => 8,
-                'name' => 'Rustic Pizza',
-                'price' => 499,
-                'description' => 'Hand-tossed sourdough with fresh basil, buffalo mozzarella, and sun-ripened cherry tomatoes.',
-                'image' => 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=500&auto=format&fit=crop'
+                'name' => 'Coca Cola',
+                'category' => 'drink',
+                'price' => 49,
+                'description' => 'Classic carbonated soft drink served ice cold.',
+                'image' => 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=500&auto=format&fit=crop'
             ],
             [
                 'id' => 9,
-                'name' => 'Harvest Bowl',
-                'price' => 249,
-                'description' => 'A vibrant mix of organic greens, roasted quinoa, chickpeas, and a honey-lemon tahini dressing.',
-                'image' => 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500&auto=format&fit=crop'
+                'name' => 'Mango Frosty',
+                'category' => 'drink',
+                'price' => 79,
+                'description' => 'Blended fresh mangoes with a creamy velvety texture.',
+                'image' => asset('images/mango.jpg')
             ],
             [
                 'id' => 10,
-                'name' => 'Pesto Pasta',
-                'price' => 299,
-                'description' => 'Creamy basil pesto with roasted pine nuts.',
-                'image' => 'https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=500&auto=format&fit=crop'
+                'name' => 'Banana Frosty',
+                'category' => 'drink',
+                'price' => 79,
+                'description' => 'A sweet and chilling blend of ripe bananas and milk with honey.',
+                'image' => asset('images/banana.jpg')
             ],
             [
                 'id' => 11,
-                'name' => 'Berry Pancakes',
-                'price' => 99,
-                'description' => 'Fluffy buttermilk pancakes topped with organic maple syrup and fresh seasonal berries.',
-                'image' => 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?q=80&w=500&auto=format&fit=crop'
+                'name' => 'Chocolate Shake',
+                'category' => 'drink',
+                'price' => 84,
+                'description' => 'Rich Belgian chocolate blended with premium vanilla ice cream.',
+                'image' => asset('images/chocolate.jpg')
             ],
             [
                 'id' => 12,
-                'name' => 'Street Tacos',
-                'price' => 149,
-                'description' => 'Three soft corn tortillas with slow-cooked carnitas, pickled onions, and fresh cilantro.',
-                'image' => 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?q=80&w=500&auto=format&fit=crop'
+                'name' => 'Cocktail',
+                'category' => 'drink',
+                'price' => 109,
+                'description' => 'Alcoholic mixed drink consisting of one or more spirits combined with other ingredients.',
+                'image' => asset('images/cocktail.jpg')
+            ],
+            [
+                'id' => 13,
+                'name' => 'Halo-Halo',
+                'category' => 'dessert',
+                'price' => 69,
+                'description' => 'A festive Filipino dessert with crushed ice, evaporated milk, and various sweet beans.',
+                'image' => asset('images/halohalo.jpg')
+            ],
+            [
+                'id' => 14,
+                'name' => 'Banana Split',
+                'category' => 'dessert',
+                'price' => 79,
+                'description' => 'Fresh bananas topped with three scoops of ice cream and chocolate drizzle.',
+                'image' => asset('images/bananasplit.jpg')
+            ],
+            [
+                'id' => 15,
+                'name' => 'Strawberry Cheesecake',
+                'category' => 'dessert',
+                'price' => 119,
+                'description' => 'Creamy New York style cheesecake with fresh strawberry compote.',
+                'image' => 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?q=80&w=500&auto=format&fit=crop'
             ],
         ];
     }
@@ -214,6 +252,18 @@ class PageController extends Controller
             'address' => 'No address set yet',
             'joined' => date('F Y'),
             'profile_pix' => asset('images/profile.jpg')
+        ];
+    }
+
+    private function getDrivers()
+    {
+        return [
+            'name' => "Ricardo Dalisay",
+            'phone' => "09175550123",
+            'plate' => "ABC 1234",
+            'distance' => "1.2 km",
+            'eta' => "15 mins",
+            'status' => "Preparing"
         ];
     }
 }

@@ -2,39 +2,93 @@
 @section('content')
 
 <style>
-    .menu-section {
-        padding: 50px 0;
+    html {
+        scroll-behavior: smooth;
+    }
+
+    .category-selector-card {
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        cursor: pointer;
+        min-width: 300px;
+        min-height: 250px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .category-selector-card:hover {
+        border-color: #ff6b6b;
+        transform: scale(1.04);
+        box-shadow: 0 10px 20px rgba(255, 107, 107, 0.09);
+    }
+
+    .category-icon {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-bottom: 25px;
+    }
+
+    .category-header-title {
+        font-weight: 800;
+        text-transform: uppercase;
+        padding-left: 30px;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        position: relative;
+    }
+
+    .category-header-title::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 8px;
+        height: 45px;
+        background-color: #ff6b6b;
+        border-radius: 10px;
+    }
+
+    .category-anchor {
+        scroll-margin-top: 100px;
+        margin-bottom: 50px !important;
+        margin-top: 50px !important;
     }
 
     .menu-card {
         background: white;
-        border-radius: 30px;
-        padding: 25px;
+        border-radius: 20px;
+        padding: 0;
         transition: all 0.4s ease;
         border: 1px solid rgba(0, 0, 0, 0.03);
         height: 100%;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+        overflow: hidden;
     }
 
     .menu-card:hover {
-        transform: translateY(-15px);
+        transform: translateY(-13px);
         box-shadow: 0 20px 40px rgba(255, 107, 107, 0.15);
         border-color: #ff6b6b;
     }
 
     .food-img-container {
-        background-color: #efc9b7ff;
-        border-radius: 25px;
-        padding: 10px;
-        margin-bottom: 20px;
+        height: 200px;
+        width: 100%;
         overflow: hidden;
     }
 
     .food-img {
         width: 100%;
-        height: 180px;
+        height: 100%;
         object-fit: cover;
-        border-radius: 20px;
     }
 
     .price-tag {
@@ -48,7 +102,7 @@
         color: white;
         border: none;
         border-radius: 50px;
-        padding: 10px 20px;
+        padding: 8px 20px;
         font-weight: 600;
         font-size: 0.9rem;
         transition: 0.3s;
@@ -59,181 +113,62 @@
         color: white;
     }
 
-    .food-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #333;
-    }
-
-    /* Location Bar Styles */
-    .location-wrapper {
-        max-width: 600px;
-        margin: 20px auto 100px auto;
-        text-align: left;
-    }
-
-    .location-title {
-        font-weight: 800;
-        font-size: 2.5rem;
-        color: #1a1a1a;
-        margin-bottom: 30px;
-    }
-
-    .location-pin {
-        color: #ff6b6b;
-        font-size: 1.3rem;
-        margin-bottom: 5px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 650;
-    }
-
-    .location-bar {
-        background: white;
-        border-radius: 100px;
-        padding: 10px 15px 10px 20px;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        border: 1px solid #eee;
-        width: 100%;
-    }
-
-    .location-bar input {
-        border: none;
-        outline: none;
-        flex-grow: 1;
-        font-size: 1.1rem;
-        color: #666;
-        text-align: left;
-        background: transparent;
-    }
-
-    .btn-done {
-        background-color: transparent;
-        color: #ff6b6b;
-        border: 2px solid #ff6b6b;
-        border-radius: 50px;
-        padding: 10px 20px;
-        font-weight: 700;
-        font-size: 1rem;
-        transition: 0.3s;
-        white-space: nowrap;
-    }
-
-    .btn-done:hover {
-        background-color: #ff6b6b;
-        color: white;
-        transform: scale(1.07);
+    [id^="category-"] {
+        scroll-margin-top: 40px;
     }
 </style>
 
-<div class="container menu-section">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-8 col-lg-6">
-
-                <div class="location-wrapper">
-                    <div class="location-pin mb-2 ms-3">
-                        <span style="font-size: 1.5rem;">📍</span>
-                        <span id="display-location">Location</span>
+<div class="container-fluid mt-3">
+    <div class="container text-center py-5 mb-5">
+        <h1 class="fw-bold mb-5">Our Popular Categories</h1>
+        <div class="row g-4 justify-content-center">
+            @foreach($categories as $categoryName => $items)
+            <div class="col-auto">
+                <a href="#category-{{ Str::slug($categoryName) }}" class="text-decoration-none">
+                    <div class="category-selector-card shadow-sm">
+                        <img src="{{ $items->first()['image'] }}" class="category-icon">
+                        <h4 class="fw-bold text-dark m-0">{{ $categoryName }}</h4>
                     </div>
-
-                    <h1 class="fw-bold mb-4 ms-4" style="font-size: 2.5rem; line-height: 1.2;">
-                        <strong>Discover restaurants that deliver near you.</strong>
-                    </h1>
-
-                    <form class="location-bar" action="{{ route('menu.page') }}" method="GET" onsubmit="saveMenuLocation()">
-                        <input
-                            type="text"
-                            list="location-options"
-                            id="location-choice"
-                            name="location"
-                            placeholder="Enter your delivery address"
-                            value="{{ request('location') }}">
-                        <datalist id="location-options">
-                            <option value="Caloocan City, Metro Manila">
-                            <option value="Manila City, Metro Manila">
-                            <option value="Marikina City, Metro Manila">
-                            <option value="Pasay City, Metro Manila">
-                            <option value="Quezon City, Metro Manila">
-                            <option value="Taguig City, Metro Manila">
-                            <option value="Valenzuela City, Metro Manila">
-                        </datalist>
-
-                        <button type="submit" class="btn-done">
-                            <span style="font-size: 0.9rem;">✔</span> DONE
-                        </button>
-                    </form>
-                </div>
-
+                </a>
             </div>
+            @endforeach
         </div>
     </div>
 
-    <div class="row g-4 justify-content-center">
-        @foreach($foods as $food)
-        <div class="col-12 col-sm-6 col-lg-4">
-            <div class="menu-card text-center">
-                <div class="food-img-container">
-                    <img src="{{ $food['image'] }}" alt="{{ $food['name'] }}" class="food-img">
-                </div>
+    <div class="container">
+        <div class="text-center">
+            <h1 class="fw-bold">Our Popular Menu</h1>
+        </div>
+        @foreach($categories as $categoryName => $items)
+        @if($items->count() > 0)
+        <div id="category-{{ Str::slug($categoryName) }}" class="category-anchor mb-4 mt-5">
+            <h2 class="category-header-title">{{ $categoryName }}</h2>
+        </div>
 
-                <h5 class="food-title mb-1">{{ $food['name'] }}</h5>
-                <p class="text-muted small mb-4">{{ $food['description'] }}</p>
-
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="price-tag">₱{{ number_format($food['price'], 0) }}</span>
-
-                    <a href="{{ route('menu.detail', $food['id']) }}" class="btn btn-order">
-                        View Order
-                    </a>
+        <div class="row g-4 mb-5">
+            @foreach($items as $food)
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="menu-card d-flex flex-column">
+                    <div class="food-img-container">
+                        <img src="{{ $food['image'] }}" alt="{{ $food['name'] }}" class="food-img">
+                    </div>
+                    <div class="text-start p-4">
+                        <h5 class="fw-bold mb-2">{{ $food['name'] }}</h5>
+                        <p class="text-muted small mb-4">{{ $food['description'] }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <span class="price-tag">₱{{ number_format($food['price'], 0) }}</span>
+                            <a href="{{ route('menu.detail', $food['id']) }}" class="btn btn-order">
+                                View Order
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
+            @endforeach
         </div>
+        @endif
         @endforeach
     </div>
 </div>
-
-<script>
-    function saveMenuLocation() {
-        const selectedLocation = document.getElementById('location-choice').value;
-
-        if (selectedLocation) {
-            localStorage.setItem('user_address', selectedLocation);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const savedAddress = localStorage.getItem('user_address');
-        const displayPin = document.getElementById('display-location');
-
-        if (savedAddress && displayPin) {
-            displayPin.innerText = savedAddress;
-        }
-    });
-    `
-    function addToCart(name, price, image) {
-        let cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
-
-        const existingItem = cart.find(item => item.name === name);
-
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cart.push({
-                name,
-                price,
-                image,
-                quantity: 1
-            });
-        }
-
-        localStorage.setItem('eatsway_cart', JSON.stringify(cart));
-        alert(name + " added to cart!");
-    }
-    `
-</script>
 
 @endSection

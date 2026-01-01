@@ -76,7 +76,7 @@
     }
 </style>
 
-<div class="container py-5 mt-1">
+<div class="container py-5">
     <div class="main-cart-wrapper shadow-sm border-0 bg-white p-5">
 
         <div class="d-flex align-items-center mb-4">
@@ -95,11 +95,26 @@
                     <h5 class="fw-bold mb-3">Order Method</h5>
 
                     <div class="mb-4">
-                        <label class="info-label mb-2">Delivery Address</label>
-                        <select class="form-select border-0 shadow-sm rounded-3 fw-bold p-3" style="font-size: 0.9rem;" id="delivery-address-select" onchange="handleAddressChange()">
-                            <option id="synced-address-option" value="">{{ $user['address'] }}</option>
-                            <option value="edit-profile">Use another address</option>
+                        <label class="info-label mb-2">Service Type</label>
+                        <select class="form-select border-0 shadow-sm rounded-3 fw-bold p-3" style="font-size: 0.9rem;" id="service-type-select" onchange="toggleServiceFields()">
+                            <option value="Delivery" selected>Delivery</option>
+                            <option value="Pick-up">Pick-up</option>
                         </select>
+                    </div>
+
+                    <div id="delivery-details-wrapper">
+                        <div class="mb-4">
+                            <label class="info-label mb-2">Delivery Address</label>
+                            <select class="form-select border-0 shadow-sm rounded-3 fw-bold p-3" style="font-size: 0.9rem;" id="delivery-address-select" onchange="handleAddressOptionChange()">
+                                <option id="synced-address-option" value="{{ $user['address'] }}">{{ $user['address'] }}</option>
+                                <option value="custom">Use another address</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4 d-none" id="custom-address-wrapper">
+                            <label class="info-label mb-2">Enter New Address</label>
+                            <input type="text" id="custom-address-input" class="form-control border-0 shadow-sm rounded-3 p-3" placeholder="Unit/Bldg, Street, City">
+                        </div>
                     </div>
 
                     <div class="mb-4">
@@ -125,9 +140,7 @@
                         <h4 class="fw-bold text-danger" id="total-display">₱0</h4>
                     </div>
 
-                    <button class="btn btn-checkout w-100 rounded-pill py-3 fw-bold shadow-sm" onclick="processCheckout()">
-                        Checkout Order
-                    </button>
+                    <button class="btn btn-checkout w-100 rounded-pill py-3 fw-bold shadow-sm">Checkout Order</button>
                 </div>
             </div>
         </div>
@@ -190,7 +203,7 @@
                     <a href="{{ route('menu.page') }}" class="btn btn-outline-dark rounded-pill px-4">Go to Menu</a>
                 </div>
             `;
-            countDisplay.innerText = `(0 items)`;
+            countDisplay.innerText = `(0 item/s)`;
             subtotalDisplay.innerText = `₱0`;
             totalDisplay.innerText = `₱0`;
             if (window.updateHeaderCartCount) updateHeaderCartCount();
@@ -212,6 +225,17 @@
         }
     }
 
+    function toggleServiceFields() {
+        const serviceType = document.getElementById('service-type-select').value;
+        const deliveryWrapper = document.getElementById('delivery-details-wrapper');
+
+        if (serviceType === "Pick-up") {
+            deliveryWrapper.classList.add('d-none');
+        } else {
+            deliveryWrapper.classList.remove('d-none');
+        }
+    }
+
     function syncAddress() {
         const addressOption = document.getElementById('synced-address-option');
         const savedAddress = localStorage.getItem('user_address');
@@ -222,26 +246,63 @@
         }
     }
 
-    function handleAddressChange() {
+    function handleAddressOptionChange() {
         const select = document.getElementById('delivery-address-select');
-        if (select.value === "edit-profile") {
-            window.location.href = "{{ route('profile.page') }}";
+        const customWrapper = document.getElementById('custom-address-wrapper');
+
+        if (select.value === "custom") {
+            customWrapper.classList.remove('d-none');
+            document.getElementById('custom-address-input').focus();
+        } else {
+            customWrapper.classList.add('d-none');
         }
     }
 
     function processCheckout() {
-        const selectedAddress = document.getElementById('delivery-address-select').value;
+        const serviceType = document.getElementById('service-type-select').value;
         const paymentMethod = document.getElementById('payment-method-select').value;
-        const cartData = localStorage.getItem('eatsway_cart'); 
-        const cart = JSON.parse(cartData) || [];
+        let finalAddress = "";
+
+        if (serviceType === "Pick-up") {
+            finalAddress = "Pick-up at Store";
+        } else {
+            const addressSelect = document.getElementById('delivery-address-select').value;
+            if (addressSelect === "custom") {
+                finalAddress = document.getElementById('custom-address-input').value;
+                if (!finalAddress || finalAddress.trim() === "") {
+                    alert("Please enter your delivery address.");
+                    return;
+                }
+            } else {
+                finalAddress = addressSelect || "{{ $user['address'] }}";
+            }
+        }
+
+        localStorage.setItem('temp_address', finalAddress);
+        localStorage.setItem('user_payment', paymentMethod);
+        
+        const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+        const history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
 
         if (cart.length === 0) {
             alert("Your cart is empty!");
             return;
         }
         
-        localStorage.setItem('user_payment', paymentMethod);
-        window.location.href = "{{ route('cart.checkout') }}";
+        if (history.filter(order => order.status !== 'Completed').length >= 2) {
+            alert("You currently have 2 active orders. Please note that refunds are not possible at this time. \n\nPlease come back and order again once your previous orders are completed to keep track of your history.");
+            return;
+        }
+
+        if (paymentMethod === "Cash on Delivery (COD)") {
+            window.location.href = "{{ route('cart.checkout') }}";
+        } else {
+            window.location.href = "/payment";
+        }
+    }
+    const checkoutBtn = document.querySelector('.btn-checkout');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', processCheckout);
     }
 
     function removeItem(index) {

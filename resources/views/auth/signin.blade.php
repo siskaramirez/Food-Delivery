@@ -120,7 +120,7 @@
             <h2 class="fw-bold mb-2" style="color: #ff6b6b;">Sign In</h2>
             <p class="text-muted small mb-4">Welcome back! Please enter your details.</p>
 
-            <form action="{{ route('signin.submit') }}" method="POST" onsubmit="handleSignin()">
+            <form action="{{ route('signin.submit') }}" method="POST">
                 @csrf
                 <div class="mb-3">
                     <label class="form-label small fw-bold">Email address</label>
@@ -162,15 +162,5 @@
         </div>
     </div>
 </div>
-
-<script>
-    function handleSignin() {
-        const emailValue = document.getElementById('email').value;
-
-        if (emailValue) {
-            localStorage.setItem('user_email', emailValue);
-        }
-    }
-</script>
 
 @endSection

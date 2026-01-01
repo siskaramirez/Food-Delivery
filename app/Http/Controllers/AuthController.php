@@ -25,10 +25,11 @@ class AuthController extends Controller
             'bday'      => 'required|date',
             'address'   => 'required|string',
             'password'  => 'required|min:8',
-            'gender'    => 'required|in:male,female,other',
+            'phone'     => 'required|numeric|digits:11',
+            'gender'    => 'required|in:male,female',
         ]);
 
-        return redirect()->route('home.page');
+        return redirect()->route('home.page')->with('success', 'Account created!')->withInput();
     }
 
     public function showSignin()
@@ -46,8 +47,12 @@ class AuthController extends Controller
             'password'   => 'required|min:8',
         ]);
 
-        return redirect()->route('home.page');
+        return redirect()->route('home.page')->with('success', 'Welcome back!')->with('user_email', $request->email);
     }
 
-    
+    public function payment()
+
+    {
+        return view('page.pay');
+    }
 }

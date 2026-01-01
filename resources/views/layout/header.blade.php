@@ -72,16 +72,16 @@
 
     .search-input {
         border-radius: 50px;
-        padding-left: 35px;
+        padding-left: 40px;
         background: white;
-        border: 1px solid #eee;
+        border: 2px solid #eee;
         width: 250px;
         font-size: 0.9rem;
     }
 
     .search-icon {
         position: absolute;
-        left: 12px;
+        left: 15px;
         top: 50%;
         transform: translateY(-50%);
         color: #999;
@@ -102,7 +102,7 @@
 
     .btn-cart:hover,
     .btn-cart.active {
-        color: #f95d5dff ;
+        color: #f95d5dff;
     }
 
     .btn-cart::after {
@@ -148,7 +148,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid #ddd;
+        border: 2px solid #e8e4e4ff;
         /*margin-left: 15px;*/
     }
 
@@ -199,11 +199,16 @@
 
                 <div class="d-flex align-items-center">
                     <a href="{{ route('cart.page') }}" class="btn-cart {{ request()->routeIs('cart.page') ? 'active' : '' }}" id="header-cart-btn">My Cart<span id="header-cart-count" class="d-none ms-1">0</span></a>
-                    <a href="{{ route('signup.page') }}" class="btn btn-signup ms-3 me-3">Sign Up</a>
+                    <a href="{{ route('orders.page') }}" id="nav-orders-icon" class="ms-2 me-2 d-none" title="My Orders">
+                        <div class="profile-circle">
+                            <img src="{{ asset('images/orders.jpg') }}" alt="Orders">
+                        </div>
+                    </a>
+                    <a href="{{ route('signup.page') }}" id="nav-signup-btn" class="btn btn-signup ms-3 me-3">Sign Up</a>
 
-                    <div class="nav-item dropdown">
+                    <div class="nav-item dropdown d-none" id="nav-profile-dropdown">
                         <a class="dropdown-toggle p-0" href="#" id="profileDrop" role="button" data-bs-toggle="dropdown">
-                            <div class="profile-circle">
+                            <div class="profile-circle ms-2">
                                 <img src="{{ asset('images/profile.jpg') }}" alt="Profile">
                             </div>
                         </a>
@@ -225,22 +230,55 @@
 </div>
 
 <script>
-    function updateHeaderCartCount() {
+    function updateNavbar() {
+        const auth = {
+            name: localStorage.getItem('user_name'),
+            email: localStorage.getItem('user_email'),
+            phone: localStorage.getItem('user_phone'),
+            address: localStorage.getItem('user_address'),
+            isAuth: localStorage.getItem('eatsway_authenticated')
+        };
+
+        const signupBtn = document.getElementById('nav-signup-btn');
+        const profileDropdown = document.getElementById('nav-profile-dropdown');
+        const ordersIcon = document.getElementById('nav-orders-icon');
+
+        const isFullyLoggedIn = auth.email && auth.isAuth === 'true';
+
+        if (isFullyLoggedIn) {
+            if (signupBtn) signupBtn.classList.add('d-none');
+            if (profileDropdown) profileDropdown.classList.remove('d-none');
+            if (ordersIcon) ordersIcon.classList.remove('d-none');
+        } else {
+            if (signupBtn) signupBtn.classList.remove('d-none');
+            if (profileDropdown) profileDropdown.classList.add('d-none');
+            if (ordersIcon) ordersIcon.classList.add('d-none');
+        }
+
+        const hasCheckedOut = localStorage.getItem('active_order_num');
+        const isCheckoutPage = window.location.pathname.includes('/checkout');
+
+        if (hasCheckedOut && !isCheckoutPage) {
+            localStorage.removeItem('eatsway_cart');
+            localStorage.removeItem('active_order_num');
+            localStorage.removeItem('user_payment');
+        }
+
         const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
-
-        const totalQuantity = cart.reduce((sum, item) => sum + item.qty, 0);
-
+        const totalQuantity = cart.reduce((sum, item) => sum + (parseInt(item.qty || item.quantity) || 0), 0);
         const headerCount = document.getElementById('header-cart-count');
+
         if (headerCount) {
             if (totalQuantity > 0) {
                 headerCount.innerText = `(${totalQuantity})`;
                 headerCount.classList.remove('d-none');
             } else {
+                headerCount.innerText = "0";
                 headerCount.classList.add('d-none');
             }
         }
     }
-    document.addEventListener('DOMContentLoaded', updateHeaderCartCount);
+    document.addEventListener('DOMContentLoaded', updateNavbar);
 
     function handleLogout() {
         localStorage.clear();

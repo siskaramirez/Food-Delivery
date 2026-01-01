@@ -63,7 +63,7 @@
 
     .btn-menu-hero:hover {
         transform: scale(1.07);
-        box-shadow: 0 10px 50px rgba(255,107,107,0.45);
+        box-shadow: 0 10px 50px rgba(255, 107, 107, 0.45);
     }
 </style>
 
@@ -71,8 +71,7 @@
     <img
         src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1500&auto=format&fit=crop"
         alt="Food"
-        class="hero-image"
-    >
+        class="hero-image">
     <div class="hero-overlay">
         <h1 class="hero-title">Are you hungry?</h1>
 
@@ -83,5 +82,30 @@
         <a href="{{ route('menu.page') }}" class="btn-menu-hero">Menu</a>
     </div>
 </div>
+
+@if(session('success'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailSignUp = "{{ old('email') }}";
+        const emailSignIn = "{{ session('user_email') }}";
+
+        if (emailSignUp && "{{ old('fname') }}") {
+            const fullName = "{{ old('fname') }} {{ old('lname') }}";
+            localStorage.setItem('user_name', fullName);
+            localStorage.setItem('user_email', emailSignUp);
+            localStorage.setItem('user_phone', "{{ old('phone') }}");
+            localStorage.setItem('user_address', "{{ old('address') }}");
+            localStorage.setItem('eatsway_authenticated', 'true');
+        } else if (emailSignIn) {
+            localStorage.setItem('user_email', emailSignIn);
+            localStorage.setItem('eatsway_authenticated', 'true');
+        }
+
+        if (typeof updateNavbar === 'function') {
+            updateNavbar();
+        }
+    });
+</script>
+@endif
 
 @endSection

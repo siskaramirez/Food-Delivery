@@ -103,7 +103,7 @@
             <h2 class="fw-bold mb-2" style="color: #ff6b6b;">Create an account</h2>
             <p class="text-muted small mb-4">Nice to meet you! Please enter your details to join us.</p>
 
-            <form action="{{ route('signup.submit') }}" method="POST" onsubmit="handleSignup()">
+            <form action="{{ route('signup.submit') }}" method="POST">
                 @csrf
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -124,7 +124,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Address</label>
-                            <input type="text" id="address" name="address" class="form-control custom-input" placeholder="City, Region" required>
+                            <input type="text" id="address" name="address" class="form-control custom-input" placeholder="Unit/Bldg, Street, City" required>
                             @error('address') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                     </div>
@@ -141,11 +141,15 @@
                             @error('password') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
+                            <label class="form-label small fw-bold">Contact Number</label>
+                            <input type="text" id="phone" name="phone" class="form-control custom-input" placeholder="09123456789" required>
+                            @error('phone') <small class="text-danger">{{ $message }}</small> @enderror
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label small fw-bold d-block">Gender</label>
                             <div class="d-flex flex-column gap-1 mt-2">
                                 <div class="form-check"><input class="form-check-input" type="radio" name="gender" value="male" id="m"><label class="form-check-label small" for="m" required>Male</label></div>
                                 <div class="form-check"><input class="form-check-input" type="radio" name="gender" value="female" id="f"><label class="form-check-label small" for="f" required>Female</label></div>
-                                <div class="form-check"><input class="form-check-input" type="radio" name="gender" value="other" id="o"><label class="form-check-label small" for="o" required>Other</label></div>
                             </div>
                             @error('gender') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
@@ -164,17 +168,5 @@
         </div>
     </div>
 </div>
-
-<script>
-    function handleSignup() {
-        const fname = document.getElementById('fname').value;
-        const lname = document.getElementById('lname').value;
-        const fullName = `${fname} ${lname}`;
-
-        localStorage.setItem('user_name', fullName);
-        localStorage.setItem('user_email', document.getElementById('email').value);
-        localStorage.setItem('user_address', document.getElementById('address').value);
-    }
-</script>
 
 @endSection
