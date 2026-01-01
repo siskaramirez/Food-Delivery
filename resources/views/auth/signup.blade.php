@@ -108,22 +108,22 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">First Name</label>
+                            <label for="fname" class="form-label small fw-bold">First Name</label>
                             <input type="text" id="fname" name="fname" class="form-control custom-input" placeholder="Juan" required>
                             @error('fname') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Email</label>
+                            <label for="email" class="form-label small fw-bold">Email</label>
                             <input type="email" id="email" name="email" class="form-control custom-input" placeholder="juan@email.com" required>
                             @error('email') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Birthday</label>
-                            <input type="date" name="bday" class="form-control custom-input" required>
+                            <label for="bday" class="form-label small fw-bold">Birthday</label>
+                            <input type="date" id="bday" name="bday" class="form-control custom-input" required>
                             @error('bday') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Address</label>
+                            <label for="address" class="form-label small fw-bold">Address</label>
                             <input type="text" id="address" name="address" class="form-control custom-input" placeholder="Unit/Bldg, Street, City" required>
                             @error('address') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
@@ -131,17 +131,17 @@
 
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Last Name</label>
+                            <label for="lname" class="form-label small fw-bold">Last Name</label>
                             <input type="text" id="lname" name="lname" class="form-control custom-input" placeholder="Dela Cruz" required>
                             @error('lname') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Password</label>
-                            <input type="password" name="password" class="form-control custom-input" placeholder="••••••••" required>
+                            <label for="password" class="form-label small fw-bold">Password</label>
+                            <input type="password" id="password" name="password" class="form-control custom-input" placeholder="••••••••" required>
                             @error('password') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Contact Number</label>
+                            <label for="phone" class="form-label small fw-bold">Contact Number</label>
                             <input type="text" id="phone" name="phone" class="form-control custom-input" placeholder="09123456789" required>
                             @error('phone') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>

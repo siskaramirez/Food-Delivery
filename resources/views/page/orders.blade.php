@@ -207,10 +207,10 @@
 <dialog id="deleteOrderModal" class="custom-dialog">
     <div class="dialog-content">
         <h3>Confirm Deletion</h3>
-        <p>Are you sure you want to remove this order?</p>
+        <p>Are you sure you want to cancel order #<span id="modal-order-id-text"></span>?</p>
         <div class="dialog-actions">
-            <button id="btnCancel" class="btn-cancel">Cancel</button>
-            <button id="btnConfirmDelete" class="btn-confirm">Delete</button>
+            <button type="button" id="btnCancel" class="btn-cancel">Cancel</button>
+            <button type="button" id="btnConfirmDelete" class="btn-confirm">Delete</button>
         </div>
     </div>
 </dialog>
@@ -226,84 +226,115 @@
             <div class="subtitle-text">Recent Transactions</div>
         </div>
 
-        <div id="orders-list-content"></div>
+        <div id="orders-list-content">
+            @if($orders->isEmpty())
+            <div class="empty-history py-5">
+                <p>No orders found in your history.</p>
+                <a href="{{ route('menu.page') }}" class="btn-order-now">Order Now</a>
+            </div>
+            @else
+            @foreach($orders as $order)
+            @php
+            $rider = $drivers->isNotEmpty() ? $drivers->random() : null;
+            @endphp
+            <div class="order-history-card">
+                <div class="order-main-info">
+                    <span class="order-number-label">Order #{{ $order->orderid }}</span>
 
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Rider</span>
+                            <span class="info-value">{{ $rider->drivername }}</span>
+                            <span style="font-size: 0.75rem; color: #888;">{{ $rider->contactno }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Plate Number</span>
+                            <span class="info-value">{{ $rider->plateno }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Expected Time</span>
+                            <span class="info-value" style="color: #28a745;">20-30 mins</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-section border-start ps-4">
+                    <span class="info-label">Status</span>
+                    <span class="status-text">{{ $order->status }}</span>
+
+                    @if($order->order_status_id == 1)
+                    <button onclick="confirmCancel('{{ $order->orderid }}')" class="btn-delete-order mt-2">
+                        Cancel Order
+                    </button>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+            @endif
+        </div>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
-        const container = document.getElementById('orders-list-content');
-
-        if (history.length === 0) {
-            container.innerHTML = `
-            <div class="empty-history">
-                <p>No orders found in your history.</p>
-                <a href="{{ route('menu.page') }}" class="btn-order-now">Order Now</a>
-            </div>`;
-            return;
-        }
-
-        container.innerHTML = history.reverse().map(order => `
-        <div class="order-history-card">
-            <div class="order-main-info">
-                <span class="order-number-label">Order ${order.orderNum}</span>
-                
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Rider</span>
-                        <span class="info-value">${order.driverName}</span>
-                        <span style="font-size: 0.75rem; color: #888;">${order.driverPhone}</span> </div>
-                    <div class="info-item">
-                        <span class="info-label">Plate Number</span>
-                        <span class="info-value">${order.driverPlate}</span> </div>
-                    <div class="info-item d-none d-md-flex"> <span class="info-label">Distance</span>
-                        <span class="info-value">${order.distance}</span>
-                    </div>
-                        <div class="info-item">
-                        <span class="info-label">Expected Time</span>
-                        <span class="info-value" style="color: #28a745;">${order.eta}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="status-section border-start ps-4">
-                <span class="info-label">Status</span>
-                <span class="status-text">${order.status}</span>
-                
-                <button onclick="deleteOrder('${order.orderNum}')" 
-                        class="btn-delete-order mt-2">
-                    Delete Order
-                </button>
-            </div>
-        </div>
-    `).join('');
-    });
-
-    let orderToDelete = null;
-
-    function deleteOrder(orderNum) {
-        orderToDelete = orderNum;
         const modal = document.getElementById('deleteOrderModal');
-        modal.showModal();
-    }
+        const btnCancel = document.getElementById('btnCancel');
+        const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+        const modalText = document.getElementById('modal-order-id-text');
+        let orderToCancel = null;
 
-    document.getElementById('btnCancel').onclick = function() {
-        document.getElementById('deleteOrderModal').close();
-        orderToDelete = null;
-    };
+        // 1. Gawing global ang function para matawag ng button sa Blade HTML
+        window.confirmCancel = function(orderId) {
+            orderToCancel = orderId;
+            if (modalText) modalText.innerText = orderId;
 
-    document.getElementById('btnConfirmDelete').onclick = function() {
-        if (orderToDelete) {
-            let history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
-            history = history.filter(o => o.orderNum !== orderToDelete);
-            localStorage.setItem('eatsway_history', JSON.stringify(history));
+            if (typeof modal.showModal === "function") {
+                modal.showModal();
+            } else {
+                alert("Your browser does not support dialog element");
+            }
+        };
 
-            document.getElementById('deleteOrderModal').close();
-            location.reload();
-        }
-    };
+        // 2. Isara ang modal nang walang ginagawa
+        btnCancel.addEventListener('click', () => {
+            modal.close();
+        });
+
+        // 3. Ang totoong Delete/Cancel logic (Database update)
+        btnConfirmDelete.addEventListener('click', async function() {
+            if (!orderToCancel) return;
+
+            btnConfirmDelete.disabled = true;
+            btnConfirmDelete.innerText = "Deleting...";
+
+            try {
+                const response = await fetch(`/order/cancel/${orderToCancel}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    modal.close();
+                    window.location.reload();
+                } else {
+                    alert("Error: " + result.message);
+                    btnConfirmDelete.disabled = false;
+                    btnConfirmDelete.innerText = "Delete";
+                }
+            } catch (error) {
+                console.error("Cancellation failed:", error);
+                alert("An error occurred. Please try again.");
+                btnConfirmDelete.disabled = false;
+                btnConfirmDelete.innerText = "Delete";
+            }
+        });
+    });
 </script>
 
 @endSection

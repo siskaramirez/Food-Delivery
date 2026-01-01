@@ -217,6 +217,11 @@
         renderCart();
         syncAddress();
 
+        const checkoutBtn = document.querySelector('.btn-checkout');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', processCheckout);
+        }
+
         let itemIndexToRemove = null;
 
         window.removeItem = function(index) {
@@ -292,6 +297,8 @@
             subtotalDisplay.innerText = `₱${subtotal.toLocaleString()}`;
             totalDisplay.innerText = `₱${subtotal.toLocaleString()}`;
 
+            sessionStorage.setItem('temp_total', subtotal.toFixed(2));
+
             if (window.updateHeaderCartCount) updateHeaderCartCount();
         } else {
             container.innerHTML = `
@@ -300,7 +307,7 @@
                     <a href="{{ route('menu.page') }}" class="btn btn-outline-dark rounded-pill px-4">Go to Menu</a>
                 </div>
             `;
-            countDisplay.innerText = `(0 item/s)`;
+            countDisplay.innerText = `(0 items)`;
             subtotalDisplay.innerText = `₱0`;
             totalDisplay.innerText = `₱0`;
             if (window.updateHeaderCartCount) updateHeaderCartCount();
@@ -356,6 +363,13 @@
     }
 
     function processCheckout() {
+        const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+        
+        if (cart.length === 0) {
+            alert("Your cart is empty!");
+            return;
+        }
+
         const serviceType = document.getElementById('service-type-select').value;
         const paymentMethod = document.getElementById('payment-method-select').value;
         let finalAddress = "";
@@ -375,31 +389,27 @@
             }
         }
 
-        localStorage.setItem('temp_address', finalAddress);
-        localStorage.setItem('user_payment', paymentMethod);
+        sessionStorage.removeItem('payment_done');
+        sessionStorage.removeItem('temp_ref');
 
-        const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
-        const history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
+        sessionStorage.setItem('temp_address', finalAddress);
+        sessionStorage.setItem('temp_method', paymentMethod);
+        sessionStorage.setItem('temp_service', serviceType);
+        sessionStorage.setItem('payment_done', 'true');
 
-        if (cart.length === 0) {
-            alert("Your cart is empty!");
-            return;
+        if (paymentMethod === "Cash on Delivery (COD)") {
+            sessionStorage.removeItem('temp_ref');
+            window.location.href = "{{ route('cart.checkout') }}";
+        } else {
+            window.location.href = "{{ route('payment.page') }}";
         }
+        /* remove this history
+        const history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
 
         if (history.filter(order => order.status !== 'Completed').length >= 2) {
             alert("You currently have 2 active orders. Please note that refunds are not possible at this time. \n\nPlease come back and order again once your previous orders are completed to keep track of your history.");
             return;
-        }
-
-        if (paymentMethod === "Cash on Delivery (COD)") {
-            window.location.href = "{{ route('cart.checkout') }}";
-        } else {
-            window.location.href = "/payment";
-        }
-    }
-    const checkoutBtn = document.querySelector('.btn-checkout');
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', processCheckout);
+        } */
     }
 
     function removeItem(index) {

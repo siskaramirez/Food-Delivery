@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PageController extends Controller
 {
@@ -15,38 +18,26 @@ class PageController extends Controller
 
     public function menu(Request $request)
     {
-        $allFoods = collect($this->getFoods());
-        $user = $this->getUsers();
         $search = $request->query('search');
 
+        $query = DB::table('food_items');
+
         if ($search) {
-            $filtered = $allFoods->filter(function ($food) use ($search) {
-                return str_contains(strtolower($food['name']), strtolower($search));
-            });
-        } else {
-            $filtered = $allFoods;
+            $query->where('foodname', 'LIKE', '%' . $search . '%');
         }
-        $categories = $filtered->groupBy('category');
 
-        if ($request->has('location')) {
-            session(['user_location' => $request->query('location')]);
-        }
-        $location = session('user_location');
+        $allFoods = $query->where('isAvailable', 'AV')->get();
 
-        return view('page.menu', compact('categories', 'search', 'location', 'user'));
+        $categories = $allFoods->groupBy('category');
+
+        $user = Auth::check() ? Auth::user() : null;
+
+        return view('page.menu', compact('categories', 'search', 'user'));
     }
 
     public function show($id)
     {
-        $foods = $this->getFoods();
-        $food = null;
-
-        foreach ($foods as $f) {
-            if ($f['id'] == $id) {
-                $food = $f;
-                break;
-            }
-        }
+        $food = DB::table('food_items')->where('foodcode', $id)->first();
 
         if (!$food) {
             abort(404);
@@ -79,172 +70,177 @@ class PageController extends Controller
     public function update(Request $request)
     {
         $rules = [
-            'name' => 'required|string|max:255',
-            'address' => 'required',
-            'phone' => 'required|numeric|digits:11',
+            'name' => 'required|string|max:50',
+            'address' => 'required|max:100',
+            'phone' => 'required|numeric|digits:11|regex:/^09/',
         ];
 
         $messages = [
             'phone.numeric'  => 'The phone field must contain numbers only.',
             'phone.digits'   => 'The phone field must be 11 digits.',
+            'phone.regex'   => 'The phone number must start with 09.',
         ];
 
         $request->validate($rules, $messages);
 
-        return redirect()->route('profile.page');
+        User::where('userid', Auth::id())->update([
+            'uname'     => $request->name,
+            'address'   => $request->address,
+            'contactno' => $request->phone,
+        ]);
+
+        return redirect()->route('profile.page')->with('success', 'Profile updated!');
     }
 
     public function orders()
     {
-        $user = $this->getUsers();
-        $driver = $this->getDrivers();
+        $user = Auth::user();
 
-        return view('page.orders', compact('user', 'driver'));
+        if (!$user) {
+            return redirect()->route('signin.page');
+        }
+
+        $orders = DB::table('orders')
+            ->join('order_status', 'orders.order_status_id', '=', 'order_status.order_status_id')
+            ->leftJoin('payments', 'orders.orderid', '=', 'payments.orderid')
+            ->where('orders.userid', $user->userid)
+            ->select('orders.*', 'order_status.status_name as status')
+            ->orderBy('orders.orderid', 'desc')
+            ->get();
+
+        $drivers = DB::table('driver')->where('isAvailable', 'AV')->get();
+
+        return view('page.orders', compact('user', 'orders', 'drivers'));
     }
 
     public function cart()
     {
-        $user = $this->getUsers();
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('signin.page');
+        }
 
         return view('page.cart', compact('user'));
     }
 
     public function checkout()
     {
-        $user = $this->getUsers();
-        $driver = $this->getDrivers();
+        $user = Auth::user();
 
-        return view('page.checkout', compact('user', 'driver'));
+        if (!$user) {
+            return redirect()->route('signin.page');
+        }
+
+        $activeOrdersCount = DB::table('orders')
+            ->where('userid', $user->userid)
+            ->whereNotIn('order_status_id', [1, 2, 3])
+            ->count();
+
+        if ($activeOrdersCount >= 2) {
+            return redirect()->route('cart.page')->with('error', 'You currently have 2 active orders.');
+        }
+
+        return view('page.checkout', compact('user'));
     }
 
-    private function getFoods()
+    public function storeOrder(Request $request)
     {
-        return [
-            [
-                'id' => 1,
-                'name' => 'Signature Burger',
-                'category' => 'food',
-                'price' => 189,
-                'description' => 'Wagyu beef with double cheddar, caramelized onions, and our secret special sauce.',
-                'image' => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500&auto=format&fit=crop'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Rustic Pizza',
-                'category' => 'food',
-                'price' => 499,
-                'description' => 'Hand-tossed sourdough with fresh basil, buffalo mozzarella, and sun-ripened cherry tomatoes.',
-                'image' => 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=500&auto=format&fit=crop'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Harvest Bowl',
-                'category' => 'food',
-                'price' => 249,
-                'description' => 'A vibrant mix of organic greens, roasted quinoa, chickpeas, and a honey-lemon tahini dressing.',
-                'image' => 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500&auto=format&fit=crop'
-            ],
-            [
-                'id' => 4,
-                'name' => 'Pesto Pasta',
-                'category' => 'food',
-                'price' => 299,
-                'description' => 'Creamy basil pesto with roasted pine nuts and Parmesan cheese.',
-                'image' => asset('images/pestopasta.jpg')
-            ],
-            [
-                'id' => 5,
-                'name' => 'Berry Pancakes',
-                'category' => 'food',
-                'price' => 99,
-                'description' => 'Fluffy buttermilk pancakes topped with organic maple syrup and fresh seasonal berries.',
-                'image' => 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?q=80&w=500&auto=format&fit=crop'
-            ],
-            [
-                'id' => 6,
-                'name' => 'Street Tacos',
-                'category' => 'food',
-                'price' => 149,
-                'description' => 'Three soft corn tortillas with slow-cooked carnitas, pickled onions, and fresh cilantro.',
-                'image' => 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?q=80&w=500&auto=format&fit=crop'
-            ],
-            [
-                'id' => 7,
-                'name' => 'Lemon Iced Tea',
-                'category' => 'drink',
-                'price' => 59,
-                'description' => 'Refreshing house-blend tea with a zesty lemon kick.',
-                'image' => 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=500&auto=format&fit=crop'
-            ],
-            [
-                'id' => 8,
-                'name' => 'Coca Cola',
-                'category' => 'drink',
-                'price' => 49,
-                'description' => 'Classic carbonated soft drink served ice cold.',
-                'image' => 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=500&auto=format&fit=crop'
-            ],
-            [
-                'id' => 9,
-                'name' => 'Mango Frosty',
-                'category' => 'drink',
-                'price' => 79,
-                'description' => 'Blended fresh mangoes with a creamy velvety texture.',
-                'image' => asset('images/mango.jpg')
-            ],
-            [
-                'id' => 10,
-                'name' => 'Banana Frosty',
-                'category' => 'drink',
-                'price' => 79,
-                'description' => 'A sweet and chilling blend of ripe bananas and milk with honey.',
-                'image' => asset('images/banana.jpg')
-            ],
-            [
-                'id' => 11,
-                'name' => 'Chocolate Shake',
-                'category' => 'drink',
-                'price' => 84,
-                'description' => 'Rich Belgian chocolate blended with premium vanilla ice cream.',
-                'image' => asset('images/chocolate.jpg')
-            ],
-            [
-                'id' => 12,
-                'name' => 'Cocktail',
-                'category' => 'drink',
-                'price' => 109,
-                'description' => 'Alcoholic mixed drink consisting of one or more spirits combined with other ingredients.',
-                'image' => asset('images/cocktail.jpg')
-            ],
-            [
-                'id' => 13,
-                'name' => 'Halo-Halo',
-                'category' => 'dessert',
-                'price' => 69,
-                'description' => 'A festive Filipino dessert with crushed ice, evaporated milk, and various sweet beans.',
-                'image' => asset('images/halohalo.jpg')
-            ],
-            [
-                'id' => 14,
-                'name' => 'Banana Split',
-                'category' => 'dessert',
-                'price' => 79,
-                'description' => 'Fresh bananas topped with three scoops of ice cream and chocolate drizzle.',
-                'image' => asset('images/bananasplit.jpg')
-            ],
-            [
-                'id' => 15,
-                'name' => 'Strawberry Cheesecake',
-                'category' => 'dessert',
-                'price' => 119,
-                'description' => 'Creamy New York style cheesecake with fresh strawberry compote.',
-                'image' => 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?q=80&w=500&auto=format&fit=crop'
-            ],
-        ];
+        $user = Auth::user();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized']);
+
+        // Double check the limit before inserting to DB
+        $activeOrders = DB::table('orders')
+            ->where('userid', $user->userid)
+            ->whereIn('order_status_id', [1, 2, 3])
+            ->count();
+
+        if ($activeOrders >= 2) {
+            return response()->json(['success' => false, 'message' => 'Order limit reached (Max 2).']);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Insert sa Orders table
+            // deliveryneeded: 1 if Delivery, 0 if Pick-up
+            $deliveryNeeded = ($request->service === 'Delivery') ? 1 : 0;
+
+            $orderId = DB::table('orders')->insertGetId([
+                'userid'            => $user->userid,
+                'orderdate'         => now(),
+                'paymentstatus'     => 'Pending',
+                'order_status_id'   => 1, // Default: Preparing
+                'deliveryneeded'    => $deliveryNeeded,
+                'datelastmodified'  => now(),
+            ]);
+
+            // 2. Loop sa Cart items at gamitin ang Stored Procedure
+            foreach ($request->cart as $item) {
+                // A. I-check muna ang stock at bawasan gamit ang iyong Stored Procedure
+                // 'S' stands for Sell/Subtract
+                $stockResult = DB::select('CALL stored_foodbuy_sell(?, ?, ?)', [
+                    $item['id'],
+                    'S',
+                    $item['qty']
+                ]);
+
+                $message = $stockResult[0]->message;
+
+                // B. Kung nag-error ang procedure (e.g., No stock or insufficient)
+                if ($message !== 'Order received') {
+                    throw new \Exception("Item " . $item['name'] . ": " . $message);
+                }
+
+                // C. Kung OK ang stock, saka i-insert sa order_items
+                DB::select('CALL insert_orderitem(?, ?, ?)', [
+                    $orderId,
+                    $item['id'],
+                    $item['qty']
+                ]);
+            }
+
+            $paymentStatus = ($request->mop === 'Cash on Delivery (COD)') ? 'Pending' : 'Paid';
+
+            // 3. Insert sa Payments (Triggering the 'Paid' status change)
+            DB::table('payments')->insert([
+                'orderid'       => $orderId,
+                'paymentmethod' => $request->mop,
+                'paymentstatus' => $paymentStatus,
+                'reference'     => $request->ref, // Ang MOCK-REF mula sa JS
+                'created_at'    => now(),
+                'updated_at'    => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'order_id' => $orderId
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
+            ]);
+        }
     }
 
     private function getUsers()
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            return [
+                'name'        => $user->uname,
+                'email'       => $user->username,
+                'phone'       => $user->contactno,
+                'address'     => $user->address,
+                'joined'      => date('F Y', strtotime($user->dateregistered)),
+                'profile_pix' => asset('images/profile.jpg')
+            ];
+        }
+
         return [
             'name' => 'Guest User',
             'email' => 'No email address set yet',

@@ -135,8 +135,8 @@
 
                     <div class="col-md-6">
                         <label class="info-label">Email Address</label>
-                        <input type="email" name="email" id="input-email" class="edit-input" value="{{ $user['email'] }}" required>
-                        @error('email') <small class="text-danger">{{ $message }}</small> @enderror
+                        <input type="email" name="email" id="input-email" class="edit-input" value="{{ $user['email'] }}" readonly>
+                        <small class="text-muted">Email cannot be changed.</small>
                     </div>
 
                     <div class="col-md-6">
@@ -147,16 +147,7 @@
 
                     <div class="col-md-6">
                         <label class="info-label">Address</label>
-                        <select name="address" id="input-address" class="form-select edit-input mb-2" required>
-                            <option value="" disabled>Select your City</option>
-                            <option value="Caloocan City, Metro Manila" {{ $user['address'] == 'Caloocan City, Metro Manila' ? 'selected' : '' }}>Caloocan City, Metro Manila</option>
-                            <option value="Manila City, Metro Manila" {{ $user['address'] == 'Manila City, Metro Manila' ? 'selected' : '' }}>Manila City, Metro Manila</option>
-                            <option value="Marikina City, Metro Manila" {{ $user['address'] == 'Marikina City, Metro Manila' ? 'selected' : '' }}>Marikina City, Metro Manila</option>
-                            <option value="Pasay City, Metro Manila" {{ $user['address'] == 'Pasay City, Metro Manila' ? 'selected' : '' }}>Pasay City, Metro Manila</option>
-                            <option value="Quezon City, Metro Manila" {{ $user['address'] == 'Quezon City, Metro Manila' ? 'selected' : '' }}>Quezon City, Metro Manila</option>
-                            <option value="Taguig City, Metro Manila" {{ $user['address'] == 'Taguig City, Metro Manila' ? 'selected' : '' }}>Taguig City, Metro Manila</option>
-                            <option value="Valenzuela City, Metro Manila" {{ $user['address'] == 'Valenzuela City, Metro Manila' ? 'selected' : '' }}>Valenzuela City, Metro Manila</option>
-                        </select>
+                        <input type="text" name="address" id="input-address" class="edit-input" value="{{ $user['address'] }}" required>
                         @error('address') <small class="text-danger">{{ $message }}</small> @enderror
                     </div>
                 </div>
@@ -172,39 +163,26 @@
 <script>
     function syncToLocalStorage() {
         const name = document.getElementById('input-name').value;
-        const email = document.getElementById('input-email').value;
         const phone = document.getElementById('input-phone').value;
-        const addressSelect = document.getElementById('input-address');
-        const selectedAddress = addressSelect.options[addressSelect.selectedIndex].value;
+        const address = document.getElementById('input-address').value;
 
         localStorage.setItem('user_name', name);
-        localStorage.setItem('user_email', email);
         localStorage.setItem('user_phone', phone);
-        localStorage.setItem('user_address', selectedAddress);
+        localStorage.setItem('user_address', address);
 
         const sidebarName = document.getElementById('sidebar-name');
         if (sidebarName) sidebarName.innerText = name;
-
-        const displayName = document.getElementById('display-name');
-        if (displayName) displayName.innerText = name;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         const fields = ['name', 'email', 'phone', 'address'];
-
+        
         fields.forEach(field => {
-            const saved = localStorage.getItem(`user_${field}`);
+            const savedValue = localStorage.getItem(`user_${field}`);
             const inputElement = document.getElementById(`input-${field}`);
 
-            if (saved && inputElement) {
-                inputElement.value = saved;
-
-                if (field === 'name') {
-                    const sidebarName = document.getElementById('sidebar-name');
-                    if (sidebarName) {
-                        sidebarName.innerText = saved;
-                    }
-                }
+            if (savedValue && inputElement) {
+                inputElement.value = savedValue;
             }
         });
     });

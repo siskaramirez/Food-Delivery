@@ -156,7 +156,7 @@
                 <a href="{{ route('menu.page') }}" class="back-btn-circle" title="Back to Menu">
                     <span class="back-arrow">⬅</span>
                 </a>
-                <img src="{{ $food['image'] }}" alt="{{ $food['name'] }}" class="main-detail-img">
+                <img src="{{ asset('images/' . $food->foodcode . '.jpg') }}" alt="{{ $food->foodname }}" class="main-detail-img">
             </div>
         </div>
 
@@ -164,26 +164,37 @@
             <nav aria-label="breadcrumb" class="mb-3" style="font-weight: bold; font-size: 1.2rem;">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('menu.page') }}" class="text-decoration-none text-muted">Menu</a></li>
-                    <li class="breadcrumb-item active text-danger fw-bold text-capitalize" aria-current="page">{{ $food['category'] }}</li>
+                    <li class="breadcrumb-item active text-danger fw-bold text-capitalize" aria-current="page">{{ $food->category }}</li>
                 </ol>
             </nav>
 
-            <h1 class="display-4 fw-bold mb-3">{{ $food['name'] }}</h1>
+            <h1 class="display-4 fw-bold mb-3">{{ $food->foodname }}</h1>
 
             <div class="d-flex align-items-center gap-4 mb-2">
-                <span class="price-detail" id="display-price">₱{{ $food['price'] }}</span>
+                <span class="price-detail" id="display-price">₱{{ $food->price }}</span>
+                @if($food->quantity > 0)
                 <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">Available</span>
+                @else
+                <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">Unavailable</span>
+                @endif
+                <!-- AVAILABILITY STATUS
+                @if($food->isAvailable == 'AV')
+                <span class="badge bg-success">Available</span>
+                @else
+                <span class="badge bg-danger">Unavailable</span>
+                @endif
+                -->
             </div>
 
             <p class="text-muted fs-5 mb-4" style="line-height: 1.8;">
-                {{ $food['description'] }}
+                {{ $food->description }}
             </p>
 
             <div class="order-controls-wrapper d-flex flex-wrap align-items-center gap-4">
                 <div class="qty-selector-lg">
-                    <button type="button" class="qty-btn" onclick="updateOrder(-1, {{ $food['price'] }})">−</button>
+                    <button type="button" class="qty-btn" onclick="updateOrder(-1, {{ $food->price }})">−</button>
                     <input id="main-qty-input" class="qty-input ms-2" type="number" value="1" min="1" readonly>
-                    <button type="button" class="qty-btn" onclick="updateOrder(1, {{ $food['price'] }})">+</button>
+                    <button type="button" class="qty-btn" onclick="updateOrder(1, {{ $food->price }})">+</button>
                 </div>
 
                 <button id="main-cart-btn" class="btn btn-add-cart-lg flex-grow-1">
@@ -215,22 +226,24 @@
         const btnText = document.getElementById('btn-text');
         const cartBtn = document.getElementById('main-cart-btn');
 
+        const maxStock = parseInt("{{ $food->quantity }}");
+
         let currentQty = parseInt(qtyInput.value);
         let newQty = currentQty + change;
 
-        if (newQty >= 1) {
+        if (newQty >= 1 && newQty <= maxStock) {
             qtyInput.value = newQty;
 
             let totalAmount = basePrice * newQty;
-
             priceDisplay.innerText = `₱${totalAmount.toLocaleString()}`;
-
             btnText.innerText = `Add to Cart (${newQty})`;
 
             cartBtn.style.transform = 'scale(1.03)';
             setTimeout(() => {
                 cartBtn.style.transform = 'scale(1)';
             }, 100);
+        } else if (newQty > maxStock) {
+            alert(`Sorry, only ${maxStock} items available in stock.`);
         }
     }
 
@@ -242,19 +255,39 @@
             return;
         }
 
+        const isAvailable = "{{ $food->isAvailable }}"; // 'AV' or 'UA'
+        const currentStock = parseInt("{{ $food->quantity }}");
+
+        if (isAvailable === 'UA' || currentStock <= 0) {
+            alert("This item is currently unavailable.");
+            return;
+        }
+
         const qtyInput = document.getElementById('main-qty-input');
+        const orderQty = parseInt(qtyInput.value);
 
         const foodItem = {
-            id: "{{ $food['id'] }}",
-            name: "{{ $food['name'] }}",
-            price: parseFloat("{{ $food['price'] }}"),
-            image: "{{ $food['image'] }}",
-            qty: parseInt(qtyInput.value)
+            id: "{{ $food->foodcode }}",
+            name: "{{ $food->foodname }}",
+            price: parseFloat("{{ $food->price }}"),
+            image: "{{ asset('images/' . $food->foodcode . '.jpg') }}",
+            qty: orderQty
         };
 
         let cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
 
         const existingItemIndex = cart.findIndex(item => item.id === foodItem.id);
+        let totalQtyInCart = orderQty;
+
+        if (existingItemIndex > -1) {
+            totalQtyInCart += cart[existingItemIndex].qty;
+        }
+
+        if (totalQtyInCart > currentStock) {
+            alert(`Cannot add more. You already have some in cart and total exceeds available stock (${currentStock}).`);
+            return;
+        }
+        
         if (existingItemIndex > -1) {
             cart[existingItemIndex].qty += foodItem.qty;
         } else {

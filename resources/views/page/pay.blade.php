@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,6 +37,7 @@
         }
     </style>
 </head>
+
 <body>
     <h2>Mock Payment</h2>
     <p id="payment-method-display"></p>
@@ -46,9 +48,9 @@
     </div>
 
     <script>
-        const paymentMethod = localStorage.getItem('user_payment') || 'Unknown';
-        const paymentDone = localStorage.getItem('payment_done');
-        const paymentRef = localStorage.getItem('payment_reference');
+        const paymentMethod = sessionStorage.getItem('temp_method') || 'Unknown Payment';
+        const paymentDone = sessionStorage.getItem('payment_done');
+        const paymentRef = sessionStorage.getItem('temp_ref');
 
         document.getElementById('payment-method-display').innerText =
             `Payment Method: ${paymentMethod}`;
@@ -58,11 +60,11 @@
         if (paymentDone === 'true' && paymentRef) {
             showSuccess(paymentRef);
         } else {
-            document.getElementById('payBtn').addEventListener('click', function () {
+            document.getElementById('payBtn').addEventListener('click', function() {
                 const reference = 'MOCK-' + Math.random().toString(36).substring(2, 10).toUpperCase();
 
-                localStorage.setItem('payment_done', 'true');
-                localStorage.setItem('payment_reference', reference);
+                sessionStorage.setItem('payment_done', 'true');
+                sessionStorage.setItem('temp_ref', reference);
 
                 showSuccess(reference);
             });
@@ -76,11 +78,10 @@
             `;
 
             document.getElementById('goSuccessBtn').addEventListener('click', () => {
-                localStorage.removeItem('payment_done');
-                localStorage.removeItem('payment_reference');
-                window.location.href = '/cart/checkout';
+                window.location.href = "{{ route('cart.checkout') }}";
             });
         }
     </script>
 </body>
+
 </html>

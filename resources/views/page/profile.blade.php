@@ -124,50 +124,35 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const data = {
+    document.addEventListener('DOMContentLoaded', function() {
+        const isAuth = localStorage.getItem('eatsway_authenticated');
+        
+        if (isAuth !== 'true') {
+            window.location.href = "{{ route('signin.page') }}";
+            return;
+        }
+
+        const cachedData = {
             name: localStorage.getItem('user_name'),
             email: localStorage.getItem('user_email'),
-            address: localStorage.getItem('user_address'),
             phone: localStorage.getItem('user_phone'),
+            address: localStorage.getItem('user_address'),
             joined: localStorage.getItem('user_joined')
         };
 
-        if (data.name) {
-            const displayName = document.getElementById('display-name');
-            if (displayName) {
-                displayName.innerText = data.name;
-            }
-
-            const sidebarName = document.getElementById('sidebar-name');
-            if (sidebarName) {
-                sidebarName.innerText = data.name;
-            }
+        if (cachedData.name) {
+            document.getElementById('sidebar-name').innerText = cachedData.name;
+            document.getElementById('display-name').innerText = cachedData.name;
         }
-
-        if (data.email) {
-            const displayEmail = document.getElementById('display-email');
-            if (displayEmail) {
-                displayEmail.innerText = data.email;
-            }
-
+        
+        if (cachedData.email) document.getElementById('display-email').innerText = cachedData.email;
+        if (cachedData.phone) document.getElementById('display-phone').innerText = cachedData.phone;
+        if (cachedData.address) document.getElementById('display-address').innerText = cachedData.address;
+        
+        if (cachedData.joined) {
             const memberSince = document.getElementById('member-since');
-            if (memberSince) {
-                const displayJoined = data.joined || "{{ $user['joined'] }}";
-
-                memberSince.innerText = "Member since " + displayJoined;
-                memberSince.classList.remove('d-none');
-            }
-        }
-
-        if (data.phone) {
-            const displayPhone = document.getElementById('display-phone');
-            if (displayPhone) displayPhone.innerText = data.phone;
-        }
-
-        if (data.address) {
-            const displayAddress = document.getElementById('display-address');
-            if (displayAddress) displayAddress.innerText = data.address;
+            memberSince.innerText = "Member since " + cachedData.joined;
+            memberSince.classList.remove('d-none');
         }
     });
 </script>

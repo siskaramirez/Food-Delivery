@@ -231,19 +231,14 @@
 
 <script>
     function updateNavbar() {
-        const auth = {
-            name: localStorage.getItem('user_name'),
-            email: localStorage.getItem('user_email'),
-            phone: localStorage.getItem('user_phone'),
-            address: localStorage.getItem('user_address'),
-            isAuth: localStorage.getItem('eatsway_authenticated')
-        };
+        const isAuth = localStorage.getItem('eatsway_authenticated');
+        const userEmail = localStorage.getItem('user_email');
 
         const signupBtn = document.getElementById('nav-signup-btn');
         const profileDropdown = document.getElementById('nav-profile-dropdown');
         const ordersIcon = document.getElementById('nav-orders-icon');
 
-        const isFullyLoggedIn = auth.email && auth.isAuth === 'true';
+        const isFullyLoggedIn = userEmail && isAuth === 'true';
 
         if (isFullyLoggedIn) {
             if (signupBtn) signupBtn.classList.add('d-none');

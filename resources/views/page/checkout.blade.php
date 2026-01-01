@@ -125,8 +125,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
         const savedPhone = localStorage.getItem('user_phone') || "{{ $user['phone'] }}";
-        const savedPayment = localStorage.getItem('user_payment') || "No payment provided";
-        const savedAddress = localStorage.getItem('temp_address') || "{{ $user['address'] }}";
+        const savedPayment = sessionStorage.getItem('temp_method') || "No payment provided";
+        const savedAddress = sessionStorage.getItem('temp_address') || "{{ $user['address'] }}";
 
         document.getElementById('summary-phone').innerText = savedPhone;
         document.getElementById('summary-address').innerText = savedAddress;
@@ -140,7 +140,7 @@
             if (noItemsMessage) noItemsMessage.classList.remove('d-none');
             return;
         }
-        
+
         let currentOrderNum = localStorage.getItem('active_order_num');
         if (!currentOrderNum) {
             currentOrderNum = "#" + Math.floor(1000 + Math.random() * 9000);
@@ -152,14 +152,13 @@
         const totalDisplay = document.getElementById('grand-total');
         let total = 0;
 
-        if (cart.length > 0) {
-            itemsContainer.innerHTML = cart.map(item => {
-                const price = parseFloat(item.price) || 0;
-                const qty = parseInt(item.quantity || item.qty) || 0;
-                const itemTotal = price * qty;
-                total += itemTotal;
+        itemsContainer.innerHTML = cart.map(item => {
+            const price = parseFloat(item.price) || 0;
+            const qty = parseInt(item.quantity || item.qty) || 0;
+            const itemTotal = price * qty;
+            total += itemTotal;
 
-                return `
+            return `
                     <div style="display: flex; align-items: center; margin-bottom: 15px;">
                         <img src="${item.image}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; margin-right: 15px; border: 1px solid #eee;">
                         <div style="flex-grow: 1;">
@@ -169,53 +168,56 @@
                         <div style="font-weight: 700; color: #333;">₱${itemTotal}</div>
                     </div>
                 `;
-            }).join('');
+        }).join('');
 
-            totalDisplay.innerText = "₱" + total.toLocaleString();
+        totalDisplay.innerText = "₱" + total.toLocaleString();
 
-            const headerCount = document.getElementById('header-cart-count');
-            if (headerCount) headerCount.innerText = "(0)";
+        const headerCount = document.getElementById('header-cart-count');
+        if (headerCount) headerCount.innerText = "(0)";
+
+        const isPaymentDone = sessionStorage.getItem('payment_done');
+        if (cart.length > 0 && isPaymentDone === 'true') {
+            autoPlaceOrder(cart);
         }
-
-        function saveToHistory() {
-            let history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
-            const orderNum = localStorage.getItem('active_order_num');
-
-            if (!orderNum) return;
-
-            const isAlreadySaved = history.find(order => order.orderNum === orderNum);
-
-            if (!isAlreadySaved) {
-                const activeOrders = history.filter(order => order.status !== 'Completed');
-
-                if (activeOrders.length >= 2) {
-                    console.log("Order limit reached. Not saving to history.");
-
-                    return;
-                }
-
-                const newEntry = {
-                    orderNum: orderNum,
-                    address: savedAddress,
-                    driverName: "{{ $driver['name'] ?? 'No Driver' }}",
-                    driverPhone: "{{ $driver['phone'] }}",
-                    driverPlate: "{{ $driver['plate'] }}",
-                    status: "{{ $driver['status'] ?? 'Preparing' }}",
-                    distance: "{{ $driver['distance'] }}",
-                    eta: "{{ $driver['eta'] }}",
-                    date: new Date().toLocaleString()
-                };
-                history.push(newEntry);
-                localStorage.setItem('eatsway_history', JSON.stringify(history));
-            }
-        }
-        saveToHistory();
 
         function clearCart() {
-            localStorage.removeItem('temp_address');
             localStorage.removeItem('eatsway_cart');
+            sessionStorage.clear();
+            /*
+            localStorage.removeItem('active_order_num'); */
         }
     });
+
+    async function autoPlaceOrder(cart) {
+        const orderData = {
+            cart: cart,
+            address: sessionStorage.getItem('temp_address'),
+            mop: sessionStorage.getItem('temp_method'),
+            ref: sessionStorage.getItem('temp_ref') || null,
+            service: sessionStorage.getItem('temp_service'),
+            _token: "{{ csrf_token() }}"
+        };
+
+        try {
+            const response = await fetch("{{ route('order.store') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json'},
+                body: JSON.stringify(orderData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Palitan ang mock order number ng totoong Order ID mula sa Database
+                document.getElementById('order-id-display').innerText = "#" + result.order_id;
+                clearCart();
+            } else {
+                console.error("Auto-save failed: " + result.message);
+            }
+        } catch (error) {
+            console.error("Order failed:", error);
+        }
+    }
 </script>
 
 @endSection

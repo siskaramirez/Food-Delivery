@@ -126,7 +126,7 @@
             <div class="col-auto">
                 <a href="#category-{{ Str::slug($categoryName) }}" class="text-decoration-none">
                     <div class="category-selector-card shadow-sm">
-                        <img src="{{ $items->first()['image'] }}" class="category-icon">
+                        <img src="{{ asset('images/' . $categories[$categoryName]->first()->foodcode . '.jpg') }}" alt="{{ $categoryName }} Item" class="category-icon">
                         <h4 class="fw-bold text-dark m-0">{{ $categoryName }}</h4>
                     </div>
                 </a>
@@ -150,14 +150,14 @@
             <div class="col-12 col-sm-6 col-lg-4">
                 <div class="menu-card d-flex flex-column">
                     <div class="food-img-container">
-                        <img src="{{ $food['image'] }}" alt="{{ $food['name'] }}" class="food-img">
+                        <img src="{{ asset('images/' . $food->foodcode . '.jpg') }}" alt="{{ $food->foodname }}" class="food-img">
                     </div>
                     <div class="text-start p-4">
-                        <h5 class="fw-bold mb-2">{{ $food['name'] }}</h5>
-                        <p class="text-muted small mb-4">{{ $food['description'] }}</p>
+                        <h5 class="fw-bold mb-2">{{ $food->foodname }}</h5>
+                        <p class="text-muted small mb-4">{{ $food->description }}</p>
                         <div class="d-flex justify-content-between align-items-center mt-auto">
-                            <span class="price-tag">₱{{ number_format($food['price'], 0) }}</span>
-                            <a href="{{ route('menu.detail', $food['id']) }}" class="btn btn-order">
+                            <span class="price-tag">₱{{ $food->price }}</span>
+                            <a href="{{ route('menu.detail', $food->foodcode) }}" class="btn btn-order">
                                 View Order
                             </a>
                         </div>

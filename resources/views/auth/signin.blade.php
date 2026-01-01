@@ -123,14 +123,14 @@
             <form action="{{ route('signin.submit') }}" method="POST">
                 @csrf
                 <div class="mb-3">
-                    <label class="form-label small fw-bold">Email address</label>
+                    <label for="email" class="form-label small fw-bold">Email address</label>
                     <input type="email" id="email" name="email" class="form-control custom-input" placeholder="Enter your email" required>
                     @error('email') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="mb-1 mb-4">
-                    <label class="form-label small fw-bold">Password</label>
-                    <input type="password" name="password" class="form-control custom-input" placeholder="Enter password" required>
+                    <label for="password" class="form-label small fw-bold">Password</label>
+                    <input type="password" id="password" name="password" class="form-control custom-input" placeholder="Enter password" required>
                     @error('password') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
