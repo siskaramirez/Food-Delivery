@@ -141,13 +141,6 @@
             return;
         }
 
-        let currentOrderNum = localStorage.getItem('active_order_num');
-        if (!currentOrderNum) {
-            currentOrderNum = "#" + Math.floor(1000 + Math.random() * 9000);
-            localStorage.setItem('active_order_num', currentOrderNum);
-        }
-        document.getElementById('order-id-display').innerText = currentOrderNum;
-
         const itemsContainer = document.getElementById('checkout-items-list');
         const totalDisplay = document.getElementById('grand-total');
         let total = 0;
@@ -193,7 +186,7 @@
             cart: cart,
             address: sessionStorage.getItem('temp_address'),
             mop: sessionStorage.getItem('temp_method'),
-            ref: sessionStorage.getItem('temp_ref') || null,
+            ref: sessionStorage.getItem('temp_ref') || 'COD-PAYMENT',
             service: sessionStorage.getItem('temp_service'),
             _token: "{{ csrf_token() }}"
         };
@@ -201,18 +194,25 @@
         try {
             const response = await fetch("{{ route('order.store') }}", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json'},
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify(orderData)
             });
 
             const result = await response.json();
 
             if (result.success) {
-                // Palitan ang mock order number ng totoong Order ID mula sa Database
-                document.getElementById('order-id-display').innerText = "#" + result.order_id;
-                clearCart();
+                const displayElement = document.getElementById('order-id-display');
+                if (displayElement) {
+                    // Gagamitin ang result.order_id na galing sa insertGetId ng Controller
+                    displayElement.innerText = "#" + result.order_id;
+                }
+                localStorage.removeItem('eatsway_cart');
             } else {
                 console.error("Auto-save failed: " + result.message);
+                window.location.href = "{{ route('cart.page') }}";
             }
         } catch (error) {
             console.error("Order failed:", error);

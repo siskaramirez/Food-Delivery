@@ -158,7 +158,7 @@
         border-radius: 15px;
         padding: 25px;
         width: 90%;
-        max-width: 400px;
+        max-width: 450px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
@@ -206,8 +206,8 @@
 <!-- WARNING BUTTON -->
 <dialog id="deleteOrderModal" class="custom-dialog">
     <div class="dialog-content">
-        <h3>Confirm Deletion</h3>
-        <p>Are you sure you want to cancel order #<span id="modal-order-id-text"></span>?</p>
+        <h3>Confirm Permanent Deletion</h3>
+        <p>Are you sure you want to cancel order #<span id="modal-order-id"></span>?</p>
         <div class="dialog-actions">
             <button type="button" id="btnCancel" class="btn-cancel">Cancel</button>
             <button type="button" id="btnConfirmDelete" class="btn-confirm">Delete</button>
@@ -235,7 +235,7 @@
             @else
             @foreach($orders as $order)
             @php
-            $rider = $drivers->isNotEmpty() ? $drivers->random() : null;
+            $rider = $drivers->count() > 0 ? $drivers[$order->orderid % $drivers->count()] : null;
             @endphp
             <div class="order-history-card">
                 <div class="order-main-info">
@@ -280,27 +280,19 @@
         const modal = document.getElementById('deleteOrderModal');
         const btnCancel = document.getElementById('btnCancel');
         const btnConfirmDelete = document.getElementById('btnConfirmDelete');
-        const modalText = document.getElementById('modal-order-id-text');
+        const modalTextDisplay = document.getElementById('modal-order-id');
         let orderToCancel = null;
-
-        // 1. Gawing global ang function para matawag ng button sa Blade HTML
+        
         window.confirmCancel = function(orderId) {
             orderToCancel = orderId;
-            if (modalText) modalText.innerText = orderId;
-
-            if (typeof modal.showModal === "function") {
-                modal.showModal();
-            } else {
-                alert("Your browser does not support dialog element");
+            if (modalTextDisplay) {
+                modalTextDisplay.innerText = orderId;
             }
+            modal.showModal();
         };
 
-        // 2. Isara ang modal nang walang ginagawa
-        btnCancel.addEventListener('click', () => {
-            modal.close();
-        });
+        btnCancel.addEventListener('click', () => modal.close());
 
-        // 3. Ang totoong Delete/Cancel logic (Database update)
         btnConfirmDelete.addEventListener('click', async function() {
             if (!orderToCancel) return;
 

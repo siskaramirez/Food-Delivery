@@ -20,6 +20,11 @@ class AuthController extends Controller
         return view('auth.signup');
     }
 
+    public function admin()
+    {
+        return view('auth.admin');
+    }
+
     public function signup(Request $request)
     {
         $request->validate([

@@ -93,7 +93,7 @@
     }
 
     .btn-confirm {
-        background: #dc3545;
+        background: #ff6b6b;
         color: white;
         border: none;
         padding: 10px 20px;
@@ -136,6 +136,16 @@
         <div class="dialog-actions">
             <button id="btnCancelRemove" class="btn-cancel">Cancel</button>
             <button id="btnConfirmRemove" class="btn-confirm">Remove</button>
+        </div>
+    </div>
+</dialog>
+
+<dialog id="limitModal" class="custom-dialog">
+    <div class="dialog-content text-center p-3">
+        <h3 class="fw-bold mb-3">Order Limit Reached</h3>
+        <p class="text-muted mb-3">You can only have 2 active orders at a time. Please wait for your previous orders to be processed or cancelled.</p>
+        <div class="mt-3">
+            <button onclick="this.closest('dialog').close()" class="btn rounded-pill fw-bold px-5" style="color:white; background: #ff6b6b;">OK</button>
         </div>
     </div>
 </dialog>
@@ -185,7 +195,7 @@
                     <div class="mb-4">
                         <label class="info-label mb-2">Mode of Payment (MOP)</label>
                         <select id="payment-method-select" class="form-select border-0 shadow-sm rounded-3 fw-bold p-3" style="font-size: 0.9rem;">
-                            <option value="Cash on Delivery (COD)" selected>Cash on Delivery (COD)</option>
+                            <option value="Cash on Delivery" selected>Cash on Delivery (COD)</option>
                             <option value="Credit/Debit Card">Credit/Debit Card</option>
                             <option value="Digital Wallet">Digital Wallet</option>
                         </select>
@@ -299,7 +309,6 @@
 
             sessionStorage.setItem('temp_total', subtotal.toFixed(2));
 
-            if (window.updateHeaderCartCount) updateHeaderCartCount();
         } else {
             container.innerHTML = `
                 <div class="text-center py-5">
@@ -310,8 +319,8 @@
             countDisplay.innerText = `(0 items)`;
             subtotalDisplay.innerText = `₱0`;
             totalDisplay.innerText = `₱0`;
-            if (window.updateHeaderCartCount) updateHeaderCartCount();
         }
+        if (window.updateHeaderCartCount) updateHeaderCartCount();
     }
 
     function changeQty(index, change) {
@@ -364,10 +373,17 @@
 
     function processCheckout() {
         const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
-        
+
         if (cart.length === 0) {
             alert("Your cart is empty!");
             return;
+        }
+
+        const activeCount = {{ $activeOrdersCount ?? 0 }};
+
+        if (activeCount >= 2) {
+            document.getElementById('limitModal').showModal(); // Ipakita ang warning
+            return; // STOP: Huwag ituloy ang checkout
         }
 
         const serviceType = document.getElementById('service-type-select').value;
@@ -389,20 +405,20 @@
             }
         }
 
-        sessionStorage.removeItem('payment_done');
-        sessionStorage.removeItem('temp_ref');
 
         sessionStorage.setItem('temp_address', finalAddress);
         sessionStorage.setItem('temp_method', paymentMethod);
         sessionStorage.setItem('temp_service', serviceType);
-        sessionStorage.setItem('payment_done', 'true');
 
-        if (paymentMethod === "Cash on Delivery (COD)") {
-            sessionStorage.removeItem('temp_ref');
+        if (paymentMethod === "Cash on Delivery") {
+            sessionStorage.setItem('temp_ref', 'COD-PAYMENT');
+            sessionStorage.setItem('payment_done', 'true');
             window.location.href = "{{ route('cart.checkout') }}";
         } else {
+            sessionStorage.setItem('payment_done', 'false');
             window.location.href = "{{ route('payment.page') }}";
         }
+        
         /* remove this history
         const history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
 

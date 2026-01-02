@@ -113,6 +113,30 @@ class PageController extends Controller
         return view('page.orders', compact('user', 'orders', 'drivers'));
     }
 
+    public function cancelOrder($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            DB::table('order_items')->where('orderid', $id)->delete();
+            DB::table('payments')->where('orderid', $id)->delete();
+            DB::table('delivery')->where('orderid', $id)->delete();
+            //DB::table('orderhistorylog')->where('orderid', $id)->delete();
+            DB::table('deliveryhistorylog')->where('orderid', $id)->delete();
+
+            $deleted = DB::table('orders')->where('orderid', $id)->delete();
+
+            if ($deleted) {
+                DB::commit();
+                return response()->json(['success' => true, 'message' => 'Order and all related records deleted.']);
+            }
+            throw new \Exception("Order not found or already deleted.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
+        }
+    }
+
     public function cart()
     {
         $user = Auth::user();
@@ -121,7 +145,14 @@ class PageController extends Controller
             return redirect()->route('signin.page');
         }
 
-        return view('page.cart', compact('user'));
+        $activeOrdersCount = DB::table('orders')
+            ->where('userid', $user->userid)
+            ->where('order_status_id', [1])
+            ->count();
+
+        $cart = [];
+
+        return view('page.cart', compact('user', 'activeOrdersCount', 'cart'));
     }
 
     public function checkout()
@@ -132,15 +163,6 @@ class PageController extends Controller
             return redirect()->route('signin.page');
         }
 
-        $activeOrdersCount = DB::table('orders')
-            ->where('userid', $user->userid)
-            ->whereNotIn('order_status_id', [1, 2, 3])
-            ->count();
-
-        if ($activeOrdersCount >= 2) {
-            return redirect()->route('cart.page')->with('error', 'You currently have 2 active orders.');
-        }
-
         return view('page.checkout', compact('user'));
     }
 
@@ -149,7 +171,6 @@ class PageController extends Controller
         $user = Auth::user();
         if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized']);
 
-        // Double check the limit before inserting to DB
         $activeOrders = DB::table('orders')
             ->where('userid', $user->userid)
             ->whereIn('order_status_id', [1, 2, 3])
@@ -162,62 +183,53 @@ class PageController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Insert sa Orders table
-            // deliveryneeded: 1 if Delivery, 0 if Pick-up
             $deliveryNeeded = ($request->service === 'Delivery') ? 1 : 0;
+            $paymentStatus = ($request->mop === 'Cash on Delivery') ? 'Pending' : 'Paid';
 
             $orderId = DB::table('orders')->insertGetId([
                 'userid'            => $user->userid,
                 'orderdate'         => now(),
-                'paymentstatus'     => 'Pending',
-                'order_status_id'   => 1, // Default: Preparing
+                'paymentstatus'     => $paymentStatus,
+                'order_status_id'   => 1,
                 'deliveryneeded'    => $deliveryNeeded,
                 'datelastmodified'  => now(),
             ]);
 
-            // 2. Loop sa Cart items at gamitin ang Stored Procedure
             foreach ($request->cart as $item) {
-                // A. I-check muna ang stock at bawasan gamit ang iyong Stored Procedure
-                // 'S' stands for Sell/Subtract
                 $stockResult = DB::select('CALL stored_foodbuy_sell(?, ?, ?)', [
-                    $item['id'],
-                    'S',
-                    $item['qty']
+                    $item['id'], 'S', $item['qty']
                 ]);
 
                 $message = $stockResult[0]->message;
 
-                // B. Kung nag-error ang procedure (e.g., No stock or insufficient)
                 if ($message !== 'Order received') {
                     throw new \Exception("Item " . $item['name'] . ": " . $message);
                 }
 
-                // C. Kung OK ang stock, saka i-insert sa order_items
                 DB::select('CALL insert_orderitem(?, ?, ?)', [
-                    $orderId,
-                    $item['id'],
-                    $item['qty']
+                    $orderId, $item['id'], $item['qty']
                 ]);
             }
 
-            $paymentStatus = ($request->mop === 'Cash on Delivery (COD)') ? 'Pending' : 'Paid';
+            $finalReference = ($request->mop === 'Cash on Delivery (COD)')
+                ? 'COD-PAYMENT'
+                : $request->ref;
 
-            // 3. Insert sa Payments (Triggering the 'Paid' status change)
             DB::table('payments')->insert([
                 'orderid'       => $orderId,
                 'paymentmethod' => $request->mop,
                 'paymentstatus' => $paymentStatus,
-                'reference'     => $request->ref, // Ang MOCK-REF mula sa JS
+                'reference'     => $finalReference,
                 'created_at'    => now(),
                 'updated_at'    => now(),
             ]);
 
             DB::commit();
-
             return response()->json([
                 'success' => true,
                 'order_id' => $orderId
             ]);
+
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
