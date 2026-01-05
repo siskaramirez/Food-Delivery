@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
@@ -34,7 +35,14 @@ Route::post('/user/signin', [AuthController::class, 'signin'])->name('signin.sub
 
 Route::get('/payment', [AuthController::class, 'payment'])->name('payment.page');
 
-Route::get('/admin', [AuthController::class, 'admin'])->name('admin.page');
+//Route::get('/admin', [AuthController::class, 'admin'])->name('admin.page');
+Route::get('/admin/home', [AdminController::class, 'home'])->name('home.admin');
+Route::get('/admin/orders', [AdminController::class, 'orders'])->name('orders.admin');
+Route::get('/admin/drivers', [AdminController::class, 'drivers'])->name('drivers.admin');
+
+Route::get('/logout', [AdminController::class, 'logout'])->name('logout.submit');
+Route::delete('/admin/user/delete/{id}', [AdminController::class, 'deleteUser'])->name('user.delete');
+Route::put('/admin/order/update/{id}', [AdminController::class, 'updateOrder'])->name('order.update');
 
 //Route::get('/forgot-password', [AuthController::class, 'showSignin'])->name('password.request');
 //Route::post('/forgot-password', [AuthController::class, 'handleReset'])->name('password.update');

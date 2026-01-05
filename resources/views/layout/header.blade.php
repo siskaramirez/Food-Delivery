@@ -175,6 +175,17 @@
             <div class="collapse navbar-collapse" id="foodleNav">
                 <div class="mx-auto d-flex align-items-center">
                     <ul class="navbar-nav center-nav">
+                        @if(session('user_role') === 'admin')
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('home.admin') ? 'active' : '' }}" href="{{ route('home.admin') }}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('orders.admin') ? 'active' : '' }}" href="{{ route('orders.admin') }}">Orders</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('drivers.admin') ? 'active' : '' }}" href="{{ route('drivers.admin') }}">Drivers</a>
+                        </li>
+                        @else
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('home.page') ? 'active' : '' }}" href="{{ route('home.page') }}">Home</a>
                         </li>
@@ -184,45 +195,66 @@
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('about.page') ? 'active' : '' }}" href="{{ route('about.page') }}">About Us</a>
                         </li>
+                        @endif
                     </ul>
-                    <form action="{{ route('menu.page') }}" method="GET" class="search-container d-none d-lg-block">
+
+                    @php
+                    $role = session('user_role');
+
+                    $searchRoute = route('menu.page');
+                    $placeholder = 'Search for food...';
+
+                    if ($role === 'admin') {
+                    if (request()->routeIs('home.admin')) {
+                    $searchRoute = route('home.admin');
+                    $placeholder = 'Search users or ID...';
+                    } elseif (request()->routeIs('orders.admin')) {
+                    $searchRoute = route('orders.admin');
+                    $placeholder = 'Search order ID...';
+                    } elseif (request()->routeIs('drivers.admin')) {
+                    $searchRoute = route('drivers.admin');
+                    $placeholder = 'Search driver name or license...';
+                    }
+                    }
+                    @endphp
+                    <form action="{{ $searchRoute }}" method="GET" class="search-container d-none d-lg-block">
                         <span class="search-icon">🔎︎</span>
-                        <input
-                            class="form-control search-input"
-                            type="search"
-                            name="search"
-                            placeholder="Search for food..."
-                            aria-label="Search"
-                            value="{{ request('search') }}">
+                        <input class="form-control search-input" type="search" name="search" placeholder="{{ $placeholder }}" value="{{ request('search') }}">
                     </form>
                 </div>
 
                 <div class="d-flex align-items-center">
-                    <a href="{{ route('cart.page') }}" class="btn-cart {{ request()->routeIs('cart.page') ? 'active' : '' }}" id="header-cart-btn">My Cart<span id="header-cart-count" class="d-none ms-1">0</span></a>
-                    <a href="{{ route('orders.page') }}" id="nav-orders-icon" class="ms-2 me-2 d-none" title="My Orders">
+                    @if(session('user_role') === 'admin')
+                    <a href="{{ route('logout.submit') }}" class="btn btn-outline-secondary me-4" onclick="handleLogout()">Logout</a>
+                    @elseif(Auth::check())
+                    <a href="{{ route('cart.page') }}" class="btn-cart {{ request()->routeIs('cart.page') ? 'active' : '' }}" id="header-cart-btn">
+                        My Cart<span id="header-cart-count" class="d-none ms-1">0</span>
+                    </a>
+
+                    <a href="{{ route('orders.page') }}" id="nav-orders-icon" class="ms-2 me-2" title="My Orders">
                         <div class="profile-circle">
                             <img src="{{ asset('images/orders.jpg') }}" alt="Orders">
                         </div>
                     </a>
-                    <a href="{{ route('signup.page') }}" id="nav-signup-btn" class="btn btn-signup ms-3 me-3">Sign Up</a>
 
-                    <div class="nav-item dropdown d-none" id="nav-profile-dropdown">
-                        <a class="dropdown-toggle p-0" href="#" id="profileDrop" role="button" data-bs-toggle="dropdown">
+                    <div class="nav-item dropdown">
+                        <a class="dropdown-toggle p-0" href="#" id="profileDrop" data-bs-toggle="dropdown">
                             <div class="profile-circle ms-2">
                                 <img src="{{ asset('images/profile.jpg') }}" alt="Profile">
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                             <li><a class="dropdown-item" href="{{ route('profile.page') }}">My Profile</a></li>
-                            <li><a class="dropdown-item" href="#">Settings</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="{{ route('signin.page') }}" onclick="handleLogout()">Logout</a>
-                            </li>
+                            <li><a class="dropdown-item text-danger" href="{{ route('logout.submit') }}" onclick="handleLogout()">Logout</a></li>
                         </ul>
                     </div>
+
+                    @else
+                    <a href="{{ route('signup.page') }}" id="nav-signup-btn" class="btn btn-signup ms-3 me-3">Sign Up</a>
+                    @endif
                 </div>
             </div>
         </nav>

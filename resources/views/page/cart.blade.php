@@ -72,12 +72,12 @@
     /* WARNING BUTTON */
     .custom-dialog {
         border: none;
-        border-radius: 15px;
-        padding: 25px;
+        border-radius: 20px;
+        padding: 30px;
         width: 90%;
         max-width: 400px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        background: #fff;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        /*background: #fff;*/
     }
 
     .custom-dialog::backdrop {
@@ -88,37 +88,43 @@
     .dialog-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 10px;
+        gap: 12px;
         margin-top: 20px;
+    }
+
+    .btn-confirm, .btn-cancel {
+        flex: 1;
+        height: 45px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border: none;
+        display: flex;
+        transition: all 0.2s ease;
+        align-items: center;
+        justify-content: center;
+        text-transform: uppercase;
+        cursor: pointer;
     }
 
     .btn-confirm {
         background: #ff6b6b;
         color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: 0.2s;
+        /*transition: 0.2s;*/
     }
 
     .btn-confirm:hover {
-        background: #e35664ff;
-        border: 1px solid #333;
+        background: #ee5253;
     }
 
     .btn-cancel {
-        background: #ecececff;
-        border: 1px solid #ddd;
-        padding: 10px 20px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: 0.2s;
+        background: #f0f1f1ff;
+        color: #6c757d;
+        /*transition: 0.2s;*/
     }
 
     .btn-cancel:hover {
-        background: #ecececff;
-        border: 1px solid #333;
+        background: #e2e6ea;
     }
 
     @media (max-width: 991px) {
@@ -131,8 +137,8 @@
 <!-- WARNING BUTTON -->
 <dialog id="removeItemModal" class="custom-dialog">
     <div class="dialog-content">
-        <h3>Confirm Deletion</h3>
-        <p>Are you sure you want to remove this item from your cart?</p>
+        <h3 class="fw-bold">Confirm Deletion</h3>
+        <p class="text-muted">Are you sure you want to remove this item<br>from your cart?</p>
         <div class="dialog-actions">
             <button id="btnCancelRemove" class="btn-cancel">Cancel</button>
             <button id="btnConfirmRemove" class="btn-confirm">Remove</button>
@@ -141,7 +147,7 @@
 </dialog>
 
 <dialog id="limitModal" class="custom-dialog">
-    <div class="dialog-content text-center p-3">
+    <div class="dialog-content text-center">
         <h3 class="fw-bold mb-3">Order Limit Reached</h3>
         <p class="text-muted mb-3">You can only have 2 active orders at a time. Please wait for your previous orders to be processed or cancelled.</p>
         <div class="mt-3">

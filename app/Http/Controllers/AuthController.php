@@ -6,6 +6,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -18,11 +19,6 @@ class AuthController extends Controller
     public function showSignup()
     {
         return view('auth.signup');
-    }
-
-    public function admin()
-    {
-        return view('auth.admin');
     }
 
     public function signup(Request $request)
@@ -50,7 +46,15 @@ class AuthController extends Controller
             'address'   => $request->address,
         ]);
 
-        return redirect()->route('home.page')->with('success', 'Account created!')->with('joined_date', date('F Y'))->with('user_age', $calculatedAge)->withInput();
+        Auth::login($user);
+        $request->session()->regenerate();
+        session(['user_role' => 'customer']);
+
+        return redirect()->route('home.page')
+            ->with('success', 'Account created!')
+            ->with('user_email', $user->username)
+            ->with('user_name', $user->uname)
+            ->with('joined_date', date('F Y'));
     }
 
     public function showSignin()
@@ -66,28 +70,46 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email'    => 'required|email',
             'password' => 'required|min:8',
+            'role'     => 'nullable|string'
         ]);
 
-        $loginData = [
-            'username' => $credentials['email'],
-            'password' => $credentials['password'],
-        ];
+        $role = $request->input('role', 'customer');
 
-        
+        if ($role === 'admin') {
 
-        if (Auth::attempt($loginData)) {
-            $user = Auth::user();
+            $admin = DB::table('admins')->where('email', $credentials['email'])->first();
 
-            return redirect()->route('home.page')
-                ->with('success', 'Welcome back!')
-                ->with('user_email', $user->username)
-                ->with('user_name', $user->uname)
-                ->with('user_phone', $user->contactno)
-                ->with('user_address', $user->address)
-                ->with('user_age', $user->age)
-                ->with('joined_date', date('F Y', strtotime($user->dateregistered)));
+            if ($admin && $credentials['password'] === $admin->password) {
+
+                session([
+                    'user_role'  => 'admin',
+                    'admin_id'   => $admin->adminid,
+                    'user_name' => 'Administrator'
+                ]);
+
+                return redirect()->route('home.admin')->with('success', 'Admin Access Successfully');
+            }
+        } else {
+
+            $loginData = [
+                'username' => $credentials['email'],
+                'password' => $credentials['password'],
+            ];
+
+            if (Auth::attempt($loginData)) {
+                $user = Auth::user();
+                $request->session()->regenerate();
+
+                return redirect()->route('home.page')
+                    ->with('success', 'Welcome back!')
+                    ->with('user_email', $user->username)
+                    ->with('user_name', $user->uname)
+                    ->with('user_phone', $user->contactno)
+                    ->with('user_address', $user->address)
+                    ->with('user_age', $user->age)
+                    ->with('joined_date', date('F Y', strtotime($user->dateregistered)));
+            }
         }
-
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->withInput($request->only('email'));

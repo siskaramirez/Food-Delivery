@@ -102,7 +102,7 @@
             </div>
 
             <div class="col-12 col-md-5 col-lg-4">
-                <a href="#" class="text-decoration-none">
+                <a href="{{ route('signin.page', ['role' => 'admin']) }}" class="text-decoration-none">
                     <div class="choice-card text-center">
                         <div class="icon-box" style="background-color: #f0f0f0;">
                             <img src="https://cdn-icons-png.flaticon.com/512/2328/2328966.png" alt="Admin" style="filter: grayscale(1);">

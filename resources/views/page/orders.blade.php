@@ -152,14 +152,14 @@
     }
 
     /* WARNING BUTTON */
-
     .custom-dialog {
         border: none;
-        border-radius: 15px;
-        padding: 25px;
+        border-radius: 20px;
+        padding: 30px;
         width: 90%;
-        max-width: 450px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        /*background: #fff;*/
     }
 
     .custom-dialog::backdrop {
@@ -170,44 +170,51 @@
     .dialog-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 10px;
+        gap: 12px;
         margin-top: 20px;
     }
 
-    .btn-confirm {
-        background: #dc3545;
-        color: white;
+    .btn-confirm, .btn-cancel {
+        flex: 1;
+        height: 45px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
         border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
+        display: flex;
+        transition: all 0.2s ease;
+        align-items: center;
+        justify-content: center;
+        text-transform: uppercase;
         cursor: pointer;
+    }
+
+    .btn-confirm {
+        background: #ff6b6b;
+        color: white;
+        /*transition: 0.2s;*/
     }
 
     .btn-confirm:hover {
-        background: #e35664ff;
-        border: 1px solid #333;
-        color: white;
+        background: #ee5253;
     }
 
     .btn-cancel {
-        background: #ecececff;
-        border: 1px solid #ddd;
-        padding: 10px 20px;
-        border-radius: 8px;
-        cursor: pointer;
+        background: #f0f1f1ff;
+        color: #6c757d;
+        /*transition: 0.2s;*/
     }
 
     .btn-cancel:hover {
-        background: #ecececff;
-        border: 1px solid #333;
+        background: #e2e6ea;
     }
 </style>
 
 <!-- WARNING BUTTON -->
 <dialog id="deleteOrderModal" class="custom-dialog">
     <div class="dialog-content">
-        <h3>Confirm Permanent Deletion</h3>
-        <p>Are you sure you want to cancel order #<span id="modal-order-id"></span>?</p>
+        <h3 class="fw-bold">Confirm Deletion</h3>
+        <p class="text-muted">Are you sure you want to permanently cancel order #<span id="modal-order-id"></span>?</p>
         <div class="dialog-actions">
             <button type="button" id="btnCancel" class="btn-cancel">Cancel</button>
             <button type="button" id="btnConfirmDelete" class="btn-confirm">Delete</button>

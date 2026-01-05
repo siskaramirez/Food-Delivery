@@ -83,7 +83,7 @@ class PageController extends Controller
 
         $request->validate($rules, $messages);
 
-        User::where('userid', Auth::id())->update([
+        User::where('username', Auth::user()->username)->update([
             'uname'     => $request->name,
             'address'   => $request->address,
             'contactno' => $request->phone,

@@ -59,6 +59,19 @@
         background-color: #ff6b6b;
     }
 
+    .btn-admin-submit {
+        background-color: transparent;
+        color: #6c757d;
+        border: 2px solid #6c757d;
+        border-radius: 12px;
+        transition: all 0.3s;
+    }
+
+    .btn-admin-submit:hover {
+        color: white;
+        background-color: #6c757d;
+    }
+
     .hover-red:hover {
         color: #ff6b6b;
     }
@@ -117,11 +130,15 @@
     <div class="signin-wide-wrapper shadow-sm border-0 d-flex overflow-hidden">
 
         <div class="signin-form-side">
-            <h2 class="fw-bold mb-2" style="color: #ff6b6b;">Sign In</h2>
-            <p class="text-muted small mb-4">Welcome back! Please enter your details.</p>
+            @php $isAdmin = request()->query('role') === 'admin'; @endphp
+            <h2 class="fw-bold mb-2" style="color: {{ $isAdmin ? '#6c757d' : '#ff6b6b' }};">
+                {{ $isAdmin ? 'Admin Portal' : 'Sign In' }}
+            </h2>
+            <p class="text-muted small mb-4">{{ $isAdmin ? 'Administrator access only.' : 'Welcome back! Please enter your details.' }}</p>
 
             <form action="{{ route('signin.submit') }}" method="POST">
                 @csrf
+                <input type="hidden" name="role" value="{{ request()->query('role', 'customer') }}">
                 <div class="mb-3">
                     <label for="email" class="form-label small fw-bold">Email address</label>
                     <input type="email" id="email" name="email" class="form-control custom-input" placeholder="Enter your email" required>
@@ -140,9 +157,12 @@
                 </div>
                 -->
 
-                <button type="submit" class="btn btn-signin-submit w-100 py-2 fw-bold">Sign In</button>
+                <button type="submit" class="btn {{ $isAdmin ? 'btn-admin-submit' : 'btn-signin-submit' }} w-100 py-2 fw-bold">
+                    {{ $isAdmin ? 'Login' : 'Sign In' }}
+                </button>
             </form>
 
+            @if(!$isAdmin)
             <div class="text-center mt-5">
                 <div class="login-divider mb-4">
                     <span>or</span>
@@ -152,12 +172,22 @@
                     <a href="{{ route('signup.page') }}" class="btn-signup-link">Go to Sign Up</a>
                 </h2>
             </div>
+            @endif
         </div>
 
         <div class="signin-image-side d-none d-lg-block">
             <div class="image-overlay">
+                @if ($isAdmin)
+                <h1 class="fw-bold">Welcome, Admin!</h1>
+                <p class="small" style="font-size: 1.1rem;">
+                    Every click you make, every task you complete, <br>brings us closer to excellence—keep pushing forward!
+                </p>
+                @else
                 <h1 class="fw-bold">Hungry?</h1>
-                <p class="small" style="font-size: 1.1rem;">Your favorite meals are just a few clicks away.</p>
+                <p class="small" style="font-size: 1.1rem;">
+                    Your favorite meals are just a few clicks away.
+                </p>
+                @endif
             </div>
         </div>
     </div>
