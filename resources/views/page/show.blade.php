@@ -141,6 +141,21 @@
         filter: brightness(0) invert(1);
     }
 
+    .custom-dialog {
+        border: none;
+        border-radius: 20px;
+        padding: 30px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        /*background: #fff;*/
+    }
+
+    .custom-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(1px);
+    }
+
     @media (max-width: 991px) {
         .main-detail-img {
             height: 400px;
@@ -219,7 +234,30 @@
     </div>
 </div>
 
+<dialog id="statusAlertModal" class="custom-dialog">
+    <div class="dialog-content text-center">
+        <h3 id="alertTitle" class="fw-bold mb-3">Notice</h3>
+        <p id="alertMessage" class="text-muted mb-3"></p>
+        <div class="mt-3">
+            <button onclick="this.closest('dialog').close()" class="btn rounded-pill fw-bold px-5" style="color:white; background: #ff6b6b;">OK</button>
+        </div>
+    </div>
+</dialog>
+
 <script>
+    const statusModal = document.getElementById('statusAlertModal');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+
+    function showAlert(title, message, isError = false) {
+        alertTitle.innerText = title;
+        alertMessage.innerText = message;
+        
+        alertTitle.style.color = isError ? '#dc3545' : '#333';
+        
+        statusModal.showModal();
+    }
+
     function updateOrder(change, basePrice) {
         const qtyInput = document.getElementById('main-qty-input');
         const priceDisplay = document.getElementById('display-price');
@@ -243,7 +281,7 @@
                 cartBtn.style.transform = 'scale(1)';
             }, 100);
         } else if (newQty > maxStock) {
-            alert(`Sorry, only ${maxStock} items available in stock.`);
+            showAlert("Stock Limit", `Sorry, only ${maxStock} items available in stock.`, true);
         }
     }
 
@@ -255,11 +293,11 @@
             return;
         }
 
-        const isAvailable = "{{ $food->isAvailable }}"; // 'AV' or 'UA'
+        const isAvailable = "{{ $food->isAvailable }}";
         const currentStock = parseInt("{{ $food->quantity }}");
 
         if (isAvailable === 'UA' || currentStock <= 0) {
-            alert("This item is currently unavailable.");
+            showAlert("Unavailable", "This item is currently unavailable.", true);
             return;
         }
 
@@ -284,7 +322,7 @@
         }
 
         if (totalQtyInCart > currentStock) {
-            alert(`Cannot add more. You already have some in cart and total exceeds available stock (${currentStock}).`);
+            showAlert("Order Limit", `Cannot add more. You already have some in cart and total exceeds available stock (${currentStock}).`, true);
             return;
         }
         
@@ -297,6 +335,10 @@
         localStorage.setItem('eatsway_cart', JSON.stringify(cart));
 
         updateHeaderCartCount();
+    });
+
+    statusModal.addEventListener('click', (e) => {
+        if (e.target === statusModal) statusModal.close();
     });
 
     function updateHeaderCartCount() {

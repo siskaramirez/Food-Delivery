@@ -1,5 +1,5 @@
 <style>
-.custom-dialog {
+    .custom-dialog {
         border: none;
         border-radius: 20px;
         padding: 30px;
@@ -20,7 +20,8 @@
         margin-top: 20px;
     }
 
-    .btn-confirm, .btn-cancel {
+    .btn-confirm,
+    .btn-cancel {
         flex: 1;
         height: 45px;
         border-radius: 10px;
@@ -63,11 +64,25 @@
                 <h6 class="fw-bold m-0" style="color: #ff6b6b;">Manage Order #{{ $order->orderid }}</h6>
                 <button type="button" class="btn-close small" data-bs-dismiss="modal" style="font-size: 0.7rem;"></button>
             </div>
-            
+
             <form id="updateForm-{{ $order->orderid }}" action="{{ route('order.update', $order->orderid) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="modal-body p-3">
+                    @if($order->deliveryneeded == 1)
+                    <div class="mb-2">
+                        <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ASSIGN DRIVER</label>
+                        <select name="driver_license" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
+                            <option value="">Select Driver</option>
+                            @foreach($drivers as $driver)
+                            <option value="{{ $driver->license }}" {{ $order->license == $driver->license ? 'selected' : '' }}>
+                                {{ $driver->license }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+
                     <div class="mb-2">
                         <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ORDER STATUS</label>
                         <select name="order_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
@@ -91,20 +106,20 @@
                         <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">DELIVERY STATUS</label>
                         <select name="delivery_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
                             @foreach(['Pending', 'Assigned', 'Picked Up', 'En Route', 'Delivered'] as $status)
-                                <option value="{{ $status }}" {{ ($order->delivery_status ?? 'Pending') == $status ? 'selected' : '' }}>
-                                    {{ $status }}
-                                </option>
+                            <option value="{{ $status }}" {{ ($order->delivery_status ?? 'Pending') == $status ? 'selected' : '' }}>
+                                {{ $status }}
+                            </option>
                             @endforeach
                         </select>
                     </div>
                     @endif
                 </div>
-                
+
                 <div class="modal-footer border-0 pt-0 px-3 pb-3">
-                    <button type="button" 
-                            onclick="confirmUpdate('{{ $order->orderid }}')"
-                            class="btn w-100 fw-bold btn-sm py-2" 
-                            style="background: #ff6b6b; color: white; border-radius: 12px; font-size: 0.8rem;">SAVE CHANGES
+                    <button type="button"
+                        onclick="confirmUpdate('{{ $order->orderid }}')"
+                        class="btn w-100 fw-bold btn-sm py-2"
+                        style="background: #ff6b6b; color: white; border-radius: 12px; font-size: 0.8rem;">SAVE CHANGES
                     </button>
                 </div>
             </form>
@@ -142,10 +157,10 @@
         if (pendingOrderId) {
             const form = document.getElementById(`updateForm-${pendingOrderId}`);
             const confirmBtn = this;
-            
+
             confirmBtn.disabled = true;
             confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-            
+
             form.submit();
         }
     });

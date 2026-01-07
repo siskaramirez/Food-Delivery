@@ -106,6 +106,8 @@
                 </div>
             </div>
 
+            
+            <!-- WARNING BUTTON
             <div class="mt-4">
                 <h4 class="fw-bold mb-3 text-dark">Quick Stats</h4>
                 <div class="d-flex gap-3">
@@ -118,7 +120,7 @@
                         <span class="text-muted small">Total Spent</span>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 </div>

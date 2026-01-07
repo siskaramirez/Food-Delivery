@@ -13,7 +13,6 @@
         background: white;
         border-radius: 15px !important;
         border: 1px solid #fff1f1 !important;
-        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.05);
         margin-bottom: 15px;
         overflow: hidden;
     }

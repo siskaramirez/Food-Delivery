@@ -65,12 +65,12 @@ class AdminController extends Controller
             'order_status'    => 'required|string',
             'payment_status'  => 'required|string',
             'delivery_status' => 'nullable|string',
+            'driver_license'  => 'nullable|string',
         ]);
 
         try {
             DB::transaction(function () use ($request, $id) {
                 // A. Update Order Status (Table: orders)
-                // Kinukuha natin ang status_id base sa status_name na pinili sa dropdown
                 $status = DB::table('order_status')->where('status_name', $request->order_status)->first();
                 if ($status) {
                     DB::table('orders')->where('orderid', $id)->update([
@@ -84,16 +84,48 @@ class AdminController extends Controller
                 ]);
 
                 // C. Update Delivery Status kung mayroon (Table: delivery)
-                if ($request->has('delivery_status')) {
-                    DB::table('delivery')->where('orderid', $id)->update([
-                        'status' => $request->delivery_status
-                    ]);
-                }
+                DB::table('delivery')->updateOrInsert(
+                    ['orderid' => $id],
+                    [
+                        'deliverystatus' => $request->delivery_status,
+                        'license' => $request->driver_license,
+                        'datelastmodified' => now()
+                    ]
+                );
             });
 
             return redirect()->back()->with('success', "Order #{$id} updated successfully!");
         } catch (\Exception $e) {
             return redirect()->back()->with('error', "Failed to update order. Please try again.");
+        }
+    }
+
+    public function updateStatus($license)
+    {
+        $driver = DB::table('driver')->where('license', $license)->first();
+
+        if ($driver) {
+            // Magpalitan ang 'AV' at 'UA' base sa current status
+            $newStatus = ($driver->isAvailable == 'AV') ? 'UA' : 'AV';
+
+            DB::table('driver')->where('license', $license)->update(['isAvailable' => $newStatus]);
+        }
+
+        return redirect()->back()->with('success', 'Status updated successfully!');
+    }
+
+    public function addQuantity(Request $request, $id)
+    {
+        $request->validate([
+            'new_quantity' => 'required|integer|min:1'
+        ]);
+
+        try {
+            DB::table('food_items')->where('foodcode', $id)->increment('quantity', $request->new_quantity);
+
+            return redirect()->back()->with('success', 'Quantity updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to update quantity.');
         }
     }
 
@@ -122,6 +154,7 @@ class AdminController extends Controller
             ->join('order_status', 'orders.order_status_id', '=', 'order_status.order_status_id')
             ->join('payments', 'orders.orderid', '=', 'payments.orderid')
             ->leftJoin('delivery', 'orders.orderid', '=', 'delivery.orderid')
+            ->leftJoin('driver', 'delivery.license', '=', 'driver.license')
             ->select(
                 'order_items.orderid',
                 'order_items.foodcode',
@@ -132,15 +165,40 @@ class AdminController extends Controller
                 'payments.paymentstatus',
                 'payments.paymentmethod',
                 'orders.orderdate',
-                'delivery.deliverystatus'
+                'delivery.deliverystatus',
+                'delivery.license'
             )
             ->when($search, function ($query, $search) {
                 return $query->where('order_items.orderid', 'like', "%{$search}%");
             })
-            ->orderBy('orders.orderdate', 'desc')
+            ->orderBy('order_items.orderid', 'desc')
             ->get();
 
-        return view('admin.orders', compact('transactions'));
+        $drivers = DB::table('driver')->select('license')->get();
+
+        return view('admin.orders', compact('transactions', 'drivers'));
+    }
+
+    public function menu(Request $request)
+    {
+        if (session('user_role') !== 'admin') {
+            return redirect()->route('signin.page');
+        }
+
+        $search = $request->query('search');
+
+        $allFoods = DB::table('food_items')
+            ->when($search, function ($query, $search) {
+                return $query->where('foodname', 'LIKE', '%' . $search . '%')
+                    ->orWhere('foodcode', 'LIKE', '%' . $search . '%');
+            })
+            ->get();
+
+        $categories = $allFoods->groupBy('category');
+
+        $user = Auth::check() ? Auth::user() : null;
+
+        return view('admin.menu', compact('categories', 'search', 'user'));
     }
 
     public function drivers(Request $request)
@@ -152,9 +210,24 @@ class AdminController extends Controller
         $search = $request->query('search');
 
         $drivers = DB::table('driver')
+            ->select(
+                'driver.license',
+                'driver.drivername',
+                'driver.contactno',
+                'driver.plateno',
+                DB::raw('(CASE 
+                WHEN EXISTS (
+                    SELECT 1 FROM delivery d 
+                    JOIN orders o ON d.orderid = o.orderid 
+                    WHERE d.license = driver.license 
+                    AND o.order_status_id = 1
+                ) THEN "UA" 
+                ELSE "AV" 
+            END) AS auto_status')
+            )
             ->when($search, function ($query, $search) {
-                return $query->where('drivername', 'like', "%{$search}%")
-                    ->orWhere('license', 'like', "%{$search}%");
+                return $query->where('driver.drivername', 'like', "%{$search}%")
+                    ->orWhere('driver.license', 'like', "%{$search}%");
             })
             ->get();
 

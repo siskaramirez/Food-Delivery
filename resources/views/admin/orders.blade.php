@@ -8,7 +8,6 @@
         /*backdrop-filter: blur(10px);*/
         border-radius: 25px;
         padding: 20px;
-        box-shadow: 0 10px 40px rgba(255, 107, 107, 0.08);
         border: 1px solid #fff1f1;
     }
 
@@ -167,6 +166,7 @@
                         <th width="12%">Service<br>Type</th>
                         <th width="13%">Order<br>Status</th>
                         <th width="13%">Delivery<br>Status</th>
+                        <th width="15%">Driver<br>Assign</th>
                         <th width="12%">Date<br>Ordered</th>
                         <th width="5%"></th>
                     </tr>
@@ -220,9 +220,13 @@
                                 {{ $row->deliverystatus ?? 'Pending' }}
                             </span>
                             @else
-                            <span class="text-muted italic small">(Pick-up)</span>
+                            <span class="text-muted small">(Pick-up)</span>
                             @endif
                             @endif
+                        </td>
+
+                        <td class="small text-muted">
+                            @if($lastOrderId !== $row->orderid) {{ $order->license ?? 'NA' }} @endif
                         </td>
 
                         <td class="text-muted small">

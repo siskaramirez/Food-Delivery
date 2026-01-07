@@ -104,6 +104,7 @@ class PageController extends Controller
             ->join('order_status', 'orders.order_status_id', '=', 'order_status.order_status_id')
             ->leftJoin('payments', 'orders.orderid', '=', 'payments.orderid')
             ->where('orders.userid', $user->userid)
+            ->where('orders.order_status_id', 1)
             ->select('orders.*', 'order_status.status_name as status')
             ->orderBy('orders.orderid', 'desc')
             ->get();
@@ -137,6 +138,48 @@ class PageController extends Controller
         }
     }
 
+    public function history()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('signin.page');
+        }
+
+        $orders = DB::table('orders')
+            ->join('order_status', 'orders.order_status_id', '=', 'order_status.order_status_id')
+            ->leftJoin('payments', 'orders.orderid', '=', 'payments.orderid')
+            ->leftJoin('order_items', 'orders.orderid', '=', 'order_items.orderid')
+            ->leftJoin('delivery', 'orders.orderid', '=', 'delivery.orderid')
+            ->leftJoin('driver', 'delivery.license', '=', 'driver.license')
+            ->where('orders.userid', $user->userid)
+            ->whereIn('orders.order_status_id', [2, 3])
+            ->select(
+                'orders.orderid',
+                'orders.datelastmodified',
+                'orders.order_status_id',
+                'payments.paymentmethod',
+                'driver.drivername',
+                'driver.contactno',
+                'order_status.status_name as status',
+
+                DB::raw('SUM(order_items.totalprice) as totalprice')
+            )
+            ->groupBy(
+                'orders.orderid',
+                'orders.datelastmodified',
+                'orders.order_status_id',
+                'payments.paymentmethod',
+                'driver.drivername',
+                'driver.contactno',
+                'order_status.status_name'
+            )
+            ->orderBy('orders.orderid', 'desc')
+            ->get();
+
+        return view('page.history', compact('user', 'orders'));
+    }
+
     public function cart()
     {
         $user = Auth::user();
@@ -150,9 +193,13 @@ class PageController extends Controller
             ->where('order_status_id', [1])
             ->count();
 
+        $foodStocks = DB::table('food_items')
+            ->pluck('quantity', 'foodcode')
+            ->toArray();
+
         $cart = [];
 
-        return view('page.cart', compact('user', 'activeOrdersCount', 'cart'));
+        return view('page.cart', compact('user', 'activeOrdersCount', 'cart', 'foodStocks'));
     }
 
     public function checkout()
@@ -197,7 +244,9 @@ class PageController extends Controller
 
             foreach ($request->cart as $item) {
                 $stockResult = DB::select('CALL stored_foodbuy_sell(?, ?, ?)', [
-                    $item['id'], 'S', $item['qty']
+                    $item['id'],
+                    'S',
+                    $item['qty']
                 ]);
 
                 $message = $stockResult[0]->message;
@@ -207,7 +256,9 @@ class PageController extends Controller
                 }
 
                 DB::select('CALL insert_orderitem(?, ?, ?)', [
-                    $orderId, $item['id'], $item['qty']
+                    $orderId,
+                    $item['id'],
+                    $item['qty']
                 ]);
             }
 
@@ -229,7 +280,6 @@ class PageController extends Controller
                 'success' => true,
                 'order_id' => $orderId
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

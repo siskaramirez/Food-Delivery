@@ -183,6 +183,9 @@
                             <a class="nav-link {{ request()->routeIs('orders.admin') ? 'active' : '' }}" href="{{ route('orders.admin') }}">Orders</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('menu.admin') ? 'active' : '' }}" href="{{ route('menu.admin') }}">Menu</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('drivers.admin') ? 'active' : '' }}" href="{{ route('drivers.admin') }}">Drivers</a>
                         </li>
                         @else
@@ -211,6 +214,9 @@
                     } elseif (request()->routeIs('orders.admin')) {
                     $searchRoute = route('orders.admin');
                     $placeholder = 'Search order ID...';
+                    } elseif (request()->routeIs('menu.admin')) {
+                    $searchRoute = route('menu.admin');
+                    $placeholder = 'Search for food...';
                     } elseif (request()->routeIs('drivers.admin')) {
                     $searchRoute = route('drivers.admin');
                     $placeholder = 'Search driver name or license...';
@@ -245,6 +251,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                             <li><a class="dropdown-item" href="{{ route('profile.page') }}">My Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ route('orders.history') }}">History</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>

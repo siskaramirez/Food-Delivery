@@ -92,7 +92,8 @@
         margin-top: 20px;
     }
 
-    .btn-confirm, .btn-cancel {
+    .btn-confirm,
+    .btn-cancel {
         flex: 1;
         height: 45px;
         border-radius: 10px;
@@ -271,6 +272,8 @@
         };
     });
 
+    const availableStocks = JSON.parse('{!! json_encode($foodStocks) !!}');
+
     function renderCart() {
         const container = document.getElementById('cart-items-container');
         const countDisplay = document.getElementById('cart-items-count');
@@ -279,17 +282,20 @@
 
         const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
 
-        if (cart.length > 0) {
-            container.innerHTML = '';
-            let subtotal = 0;
-            let totalQuantity = 0;
+        let cartHTML = '';
+        let subtotal = 0;
+        let totalQuantity = 0;
 
+        if (cart.length > 0) {
             cart.forEach((item, index) => {
+                const maxStock = availableStocks[item.id] || 0;
                 const itemTotal = item.price * item.qty;
+                const isMaxed = item.qty >= maxStock;
+
                 subtotal += itemTotal;
                 totalQuantity += item.qty;
 
-                container.innerHTML += `
+                cartHTML += `
                     <div class="cart-item-card d-flex align-items-center p-3 shadow-sm border mb-3">
                         <div class="item-img-container me-3">
                             <img src="${item.image}" alt="${item.name}" class="rounded-3" style="width: 80px; height: 80px; object-fit: cover;">
@@ -299,8 +305,9 @@
                             <div class="qty-selector-cart shadow-sm mt-2">
                                 <button class="qty-btn-cart" onclick="changeQty(${index}, -1)">−</button>
                                 <input class="qty-input-cart ms-2" type="number" value="${item.qty}" readonly>
-                                <button class="qty-btn-cart" onclick="changeQty(${index}, 1)">+</button>
+                                <button class="qty-btn-cart" onclick="changeQty(${index}, 1)" ${isMaxed ? 'style="opacity:0.5"' : ''}>+</button>
                             </div>
+                            ${isMaxed ? `<small class="text-danger d-block mt-1" style="font-size: 0.7rem;">Stock limit reached</small>` : ''}
                         </div>
                         <div class="text-end">
                             <p class="fw-bold mb-0 text-danger" style="font-size: 1.1rem;">₱${itemTotal.toLocaleString()}</p>
@@ -316,7 +323,7 @@
             sessionStorage.setItem('temp_total', subtotal.toFixed(2));
 
         } else {
-            container.innerHTML = `
+            cartHTML = `
                 <div class="text-center py-5">
                     <p class="text-muted">Your cart is empty.</p>
                     <a href="{{ route('menu.page') }}" class="btn btn-outline-dark rounded-pill px-4">Go to Menu</a>
@@ -326,19 +333,28 @@
             subtotalDisplay.innerText = `₱0`;
             totalDisplay.innerText = `₱0`;
         }
+        container.innerHTML = cartHTML;
         if (window.updateHeaderCartCount) updateHeaderCartCount();
     }
 
     function changeQty(index, change) {
         let cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+        let item = cart[index];
 
-        if (cart[index]) {
-            cart[index].qty += change;
+        if (item) {
+            const maxStock = availableStocks[item.id] || 0;
+            let newQty = item.qty + change;
 
-            if (cart[index].qty < 1) {
-                cart[index].qty = 1;
+            if (change > 0 && newQty > maxStock) {
+                showAlert("Stock Limit", `Sorry, only ${maxStock} items available in stock for ${item.name}.`, true);
+                return;
             }
 
+            if (newQty < 1) {
+                newQty = 1;
+            }
+
+            item.qty = newQty;
             localStorage.setItem('eatsway_cart', JSON.stringify(cart));
             renderCart();
         }
@@ -381,15 +397,23 @@
         const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
 
         if (cart.length === 0) {
-            alert("Your cart is empty!");
+            showAlert("Empty Cart", "Your cart is empty! Please add items before checking out.", true);
             return;
+        }
+
+        for (const item of cart) {
+            const maxStock = availableStocks[item.id] || 0;
+            if (item.qty > maxStock) {
+                showAlert("Stock Error", `The item "${item.name}" exceeds available stock (${maxStock}). Please adjust your cart.`, true);
+                return;
+            }
         }
 
         const activeCount = {{ $activeOrdersCount ?? 0 }};
 
         if (activeCount >= 2) {
-            document.getElementById('limitModal').showModal(); // Ipakita ang warning
-            return; // STOP: Huwag ituloy ang checkout
+            document.getElementById('limitModal').showModal();
+            return;
         }
 
         const serviceType = document.getElementById('service-type-select').value;
@@ -411,7 +435,6 @@
             }
         }
 
-
         sessionStorage.setItem('temp_address', finalAddress);
         sessionStorage.setItem('temp_method', paymentMethod);
         sessionStorage.setItem('temp_service', serviceType);
@@ -424,7 +447,7 @@
             sessionStorage.setItem('payment_done', 'false');
             window.location.href = "{{ route('payment.page') }}";
         }
-        
+
         /* remove this history
         const history = JSON.parse(localStorage.getItem('eatsway_history')) || [];
 
