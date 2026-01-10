@@ -73,7 +73,7 @@
         alt="Food"
         class="hero-image">
     <div class="hero-overlay">
-        <h1 class="hero-title">Are you hungry?</h1>
+        <h1 class="hero-title">Are you hungry???</h1>
 
         <div class="hero-tagline">
             <p class="mb-1">Don't wait!!!</p>
