@@ -174,7 +174,8 @@
         margin-top: 20px;
     }
 
-    .btn-confirm, .btn-cancel {
+    .btn-confirm,
+    .btn-cancel {
         flex: 1;
         height: 45px;
         border-radius: 10px;
@@ -241,9 +242,6 @@
             </div>
             @else
             @foreach($orders as $order)
-            @php
-            $rider = $drivers->count() > 0 ? $drivers[$order->orderid % $drivers->count()] : null;
-            @endphp
             <div class="order-history-card">
                 <div class="order-main-info">
                     <span class="order-number-label">Order #{{ $order->orderid }}</span>
@@ -251,23 +249,35 @@
                     <div class="info-grid">
                         <div class="info-item">
                             <span class="info-label">Rider</span>
-                            <span class="info-value">{{ $rider->drivername }}</span>
-                            <span style="font-size: 0.75rem; color: #888;">{{ $rider->contactno }}</span>
+                            @if($order->drivername)
+                            <span class="info-value">{{ $order->drivername }}</span>
+                            <span style="font-size: 0.75rem; color: #888;">{{ $order->contactno }}</span>
+                            @else
+                            <span class="info-value text-muted">Not assigned yet</span>
+                            @endif
                         </div>
                         <div class="info-item">
                             <span class="info-label">Plate Number</span>
-                            <span class="info-value">{{ $rider->plateno }}</span>
+                            <span class="info-value">{{ $order->plateno ?? 'TBA' }}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Expected Time</span>
-                            <span class="info-value" style="color: #28a745;">20-30 mins</span>
+                            <span class="info-label">Payment Method</span>
+                            <span class="info-value">{{ $order->paymentmethod }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Total Amount</span>
+                            <span class="info-value">₱{{ $order->totalprice }}</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="status-section border-start ps-4">
                     <span class="info-label">Status</span>
-                    <span class="status-text">{{ $order->status }}</span>
+                    @if($order->deliveryneeded == 1)
+                    <span class="status-text">{{ $order->deliverystatus }}</span>
+                    @else
+                    <span class="status-text">{{ $order->order_status }}</span>
+                    @endif
 
                     @if($order->order_status_id == 1)
                     <button onclick="confirmCancel('{{ $order->orderid }}')" class="btn-delete-order mt-2">
@@ -289,7 +299,7 @@
         const btnConfirmDelete = document.getElementById('btnConfirmDelete');
         const modalTextDisplay = document.getElementById('modal-order-id');
         let orderToCancel = null;
-        
+
         window.confirmCancel = function(orderId) {
             orderToCancel = orderId;
             if (modalTextDisplay) {

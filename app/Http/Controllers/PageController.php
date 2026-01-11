@@ -103,15 +103,51 @@ class PageController extends Controller
         $orders = DB::table('orders')
             ->join('order_status', 'orders.order_status_id', '=', 'order_status.order_status_id')
             ->leftJoin('payments', 'orders.orderid', '=', 'payments.orderid')
+            ->leftJoin('order_items', 'orders.orderid', '=', 'order_items.orderid')
+            ->leftJoin('delivery', 'orders.orderid', '=', 'delivery.orderid')
+            ->leftJoin('driver', 'delivery.license', '=', 'driver.license')
             ->where('orders.userid', $user->userid)
-            ->where('orders.order_status_id', 1)
-            ->select('orders.*', 'order_status.status_name as status')
+            ->where(function ($query) {
+                $query->where(function ($q) {
+                    $q->where('orders.deliveryneeded', 0)
+                        ->where('orders.order_status_id', 1);
+                })
+                    ->orWhere(function ($q) {
+                        $q->where('orders.deliveryneeded', 1)
+                            ->where('orders.order_status_id', '!=', 3)
+                            ->where(function ($sub) {
+                                $sub->where('delivery.deliverystatus', '!=', 'Delivered');
+                            });
+                    });
+            })
+            ->select(
+                'orders.orderid',
+                'orders.order_status_id',
+                'orders.deliveryneeded',
+                'order_status.status_name as order_status',
+                'payments.paymentmethod',
+                'delivery.deliverystatus',
+                'driver.drivername',
+                'driver.contactno',
+                'driver.plateno',
+
+                DB::raw('SUM(order_items.totalprice) as totalprice')
+            )
+            ->groupBy(
+                'orders.orderid',
+                'orders.order_status_id',
+                'orders.deliveryneeded',
+                'order_status.status_name',
+                'payments.paymentmethod',
+                'delivery.deliverystatus',
+                'driver.drivername',
+                'driver.contactno',
+                'driver.plateno',
+            )
             ->orderBy('orders.orderid', 'desc')
             ->get();
 
-        $drivers = DB::table('driver')->where('isAvailable', 'AV')->get();
-
-        return view('page.orders', compact('user', 'orders', 'drivers'));
+        return view('page.orders', compact('user', 'orders'));
     }
 
     public function cancelOrder($id)
@@ -153,15 +189,29 @@ class PageController extends Controller
             ->leftJoin('delivery', 'orders.orderid', '=', 'delivery.orderid')
             ->leftJoin('driver', 'delivery.license', '=', 'driver.license')
             ->where('orders.userid', $user->userid)
-            ->whereIn('orders.order_status_id', [2, 3])
+            ->where(function ($query) {
+                $query->where(function ($q) {
+                    $q->where('orders.deliveryneeded', 0)
+                        ->whereIn('orders.order_status_id', [2, 3]);
+                })
+                    ->orWhere(function ($q) {
+                        $q->where('orders.deliveryneeded', 1)
+                            ->where(function ($sub) {
+                                $sub->where('delivery.deliverystatus', 'Delivered')
+                                    ->orWhere('orders.order_status_id', 3);
+                            });
+                    });
+            })
             ->select(
                 'orders.orderid',
                 'orders.datelastmodified',
                 'orders.order_status_id',
+                'orders.deliveryneeded',
+                'order_status.status_name as order_status',
+                'delivery.deliverystatus',
                 'payments.paymentmethod',
                 'driver.drivername',
                 'driver.contactno',
-                'order_status.status_name as status',
 
                 DB::raw('SUM(order_items.totalprice) as totalprice')
             )
@@ -169,10 +219,12 @@ class PageController extends Controller
                 'orders.orderid',
                 'orders.datelastmodified',
                 'orders.order_status_id',
+                'orders.deliveryneeded',
+                'order_status.status_name',
+                'delivery.deliverystatus',
                 'payments.paymentmethod',
                 'driver.drivername',
                 'driver.contactno',
-                'order_status.status_name'
             )
             ->orderBy('orders.orderid', 'desc')
             ->get();
@@ -213,6 +265,11 @@ class PageController extends Controller
         return view('page.checkout', compact('user'));
     }
 
+    public function payment()
+    {
+        return view('page.pay');
+    }
+
     public function storeOrder(Request $request)
     {
         $user = Auth::user();
@@ -220,7 +277,7 @@ class PageController extends Controller
 
         $activeOrders = DB::table('orders')
             ->where('userid', $user->userid)
-            ->whereIn('order_status_id', [1, 2, 3])
+            ->whereIn('order_status_id', [1])
             ->count();
 
         if ($activeOrders >= 2) {
@@ -241,6 +298,15 @@ class PageController extends Controller
                 'deliveryneeded'    => $deliveryNeeded,
                 'datelastmodified'  => now(),
             ]);
+
+            if ($deliveryNeeded === 1) {
+                DB::table('delivery')->insert([
+                    'orderid'               => $orderId,
+                    'license'               => null,
+                    'deliveryaddress'       => $request->address,
+                    'deliverystatus'        => 'Pending'
+                ]);
+            }
 
             foreach ($request->cart as $item) {
                 $stockResult = DB::select('CALL stored_foodbuy_sell(?, ?, ?)', [

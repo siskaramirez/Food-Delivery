@@ -26,7 +26,7 @@ class AuthController extends Controller
         $request->validate([
             'fname'     => 'required|string|max:25',
             'lname'     => 'required|string|max:25',
-            'email'     => 'required|email|unique:users,username',
+            'email'     => 'required|email|unique:users,username|regex:/@gmail\.com$/',
             'bday'      => 'required|date|before:today',
             'address'   => 'required|max:100',
             'password'  => 'required|min:8',
@@ -68,7 +68,7 @@ class AuthController extends Controller
     public function signin(Request $request)
     {
         $credentials = $request->validate([
-            'email'    => 'required|email',
+            'email'    => 'required|email|regex:/@gmail\.com$/',
             'password' => 'required|min:8',
             'role'     => 'nullable|string'
         ]);
@@ -113,12 +113,6 @@ class AuthController extends Controller
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->withInput($request->only('email'));
-    }
-
-    public function payment()
-
-    {
-        return view('page.pay');
     }
 
     private function calculateAge($bday)

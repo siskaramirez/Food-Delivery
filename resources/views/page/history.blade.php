@@ -270,8 +270,20 @@
 
                 <div class="status-section border-start ps-4">
                     <span class="info-label">Status</span>
-                    <span class="status-text" style="color: {{ $order->order_status_id == 2 ? '#28a745' : '#dc3545' }};">
-                        {{ strtoupper($order->status) }}
+                    @php
+                    $statusColor = ($order->order_status_id == 2) ? '#28a745' : '#dc3545';
+
+                    if ($order->order_status_id == 3) {
+                    $statusResult = $order->order_status;
+                    } elseif ($order->deliveryneeded == 1) {
+                    $statusResult = $order->deliverystatus;
+                    } else {
+                    $statusResult = $order->order_status;
+                    }
+                    @endphp
+
+                    <span class="status-text" style="color: {{ $statusColor }};">
+                        {{ strtoupper($statusResult) }}
                     </span>
 
                     <button onclick="confirmCancel('{{ $order->orderid }}')" class="btn-delete-order mt-2">

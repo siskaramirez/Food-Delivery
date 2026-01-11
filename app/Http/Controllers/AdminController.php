@@ -83,20 +83,21 @@ class AdminController extends Controller
                     'paymentstatus' => $request->payment_status
                 ]);
 
-                // C. Update Delivery Status kung mayroon (Table: delivery)
-                DB::table('delivery')->updateOrInsert(
-                    ['orderid' => $id],
-                    [
-                        'deliverystatus' => $request->delivery_status,
+                $existingDelivery = DB::table('delivery')->where('orderid', $id)->first();
+
+                if ($existingDelivery) {
+                    // C. Update Delivery Status kung mayroon (Table: delivery)
+                    DB::table('delivery')->where('orderid', $id)->update([
                         'license' => $request->driver_license,
-                        'datelastmodified' => now()
-                    ]
-                );
+                        'deliverystatus' => $request->delivery_status,
+                        'deliveryaddress'  => $existingDelivery->deliveryaddress
+                    ]);
+                }
             });
 
-            return redirect()->back()->with('success', "Order #{$id} updated successfully!");
+            return redirect()->route('admin.orders')->with('success', "Order #{$id} updated successfully!");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', "Failed to update order. Please try again.");
+            return redirect()->back()->with('error', "Update failed: " . $e->getMessage());
         }
     }
 
@@ -161,7 +162,7 @@ class AdminController extends Controller
                 'order_items.quantity',
                 'order_items.totalprice',
                 'orders.deliveryneeded',
-                'order_status.status_name as order_status',
+                'order_status.status_name',
                 'payments.paymentstatus',
                 'payments.paymentmethod',
                 'orders.orderdate',
@@ -174,7 +175,7 @@ class AdminController extends Controller
             ->orderBy('order_items.orderid', 'desc')
             ->get();
 
-        $drivers = DB::table('driver')->select('license')->get();
+        $drivers = DB::table('driver')->select('license', 'isAvailable')->get();
 
         return view('admin.orders', compact('transactions', 'drivers'));
     }
@@ -210,20 +211,7 @@ class AdminController extends Controller
         $search = $request->query('search');
 
         $drivers = DB::table('driver')
-            ->select(
-                'driver.license',
-                'driver.drivername',
-                'driver.contactno',
-                'driver.plateno',
-                DB::raw('(CASE 
-                WHEN EXISTS (
-                    SELECT 1 FROM delivery d 
-                    JOIN orders o ON d.orderid = o.orderid 
-                    WHERE d.license = driver.license 
-                    AND o.order_status_id = 1
-                ) THEN "UA" 
-                ELSE "AV" 
-            END) AS auto_status')
+            ->select('license', 'drivername', 'contactno', 'plateno', 'isAvailable'
             )
             ->when($search, function ($query, $search) {
                 return $query->where('driver.drivername', 'like', "%{$search}%")

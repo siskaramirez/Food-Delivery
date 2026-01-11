@@ -3,114 +3,123 @@
 
 <style>
     .about-header {
-        padding: 80px 0 40px;
+        padding: 80px 0 60px;
         text-align: center;
-    }
-
-    .about-card {
-        background: white;
-        border-radius: 20px;
-        padding: 40px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-        margin-bottom: 40px;
-        border: 1px solid rgba(0,0,0,0.02);
     }
 
     .accent-text {
         color: #ff6b6b;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 2px;
-        font-size: 1.2rem;
+        letter-spacing: 3px;
+        font-size: 1.1rem;
+        display: block;
+        margin-bottom: 10px;
     }
 
-    .about-img {
-        width: 100%;
-        border-radius: 20px;
-        height: 400px;
-        object-fit: cover;
-    }
-
-    .stat-box {
+    .member-card {
+        background: white;
+        border-radius: 25px;
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.02);
+        height: 100%;
         text-align: center;
-        padding: 20px;
     }
 
-    .stat-number {
-        font-size: 2.5rem;
+    .member-img-container {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        padding: 8px;
+        border: 2px dashed #ff6b6b;
+    }
+
+    .member-img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #f8f9fa;
+    }
+
+    .member-name {
         font-weight: 800;
+        color: #2d3436;
+        margin-bottom: 5px;
+        font-size: 1.25rem;
+    }
+
+    .member-role {
         color: #ff6b6b;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        margin-bottom: 15px;
         display: block;
     }
 
-    .stat-label {
+    .fb-btn {
+        background: #e7f3ff;
+        color: #1877f2;
+        padding: 8px 20px;
+        border-radius: 13px;
+        text-decoration: none;
+        font-size: 0.85rem;
         font-weight: 600;
-        color: #666;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .fb-btn:hover {
+        background: #1877f2;
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .fb-btn i {
+        font-size: 1.1rem;
     }
 </style>
 
 <div class="container">
     <div class="about-header">
-        <h6 class="accent-text">Our Story</h6>
-        <h1 class="display-4 fw-bold">About EatsWay!</h1>
-        <div class="mx-auto" style="width: 60px; height: 4px; margin-top: 10px;"></div>
+        <span class="accent-text">Meet the Team</span>
+        <h1 class="display-4 fw-bold">GROUP 13</h1>
     </div>
 
-    <div class="row  g-5">
-        <div class="col-lg-6 pt-5">
-            <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=800&auto=format&fit=crop" alt="EatsWay Delivery" class="about-img">
-        </div>
+    <div class="row g-4 justify-content-center">
+        @php
+        $team = [
+        ['id' => 'MEM1', 'name' => 'Luis Gabriel F. Dela Cruz', 'role' => 'Project Manager', 'fb_link' => 'https://www.facebook.com/luisgabriel.delacruz.9003'],
+        ['id' => 'MEM2', 'name' => 'Francheska E. Ramirez', 'role' => 'Frontend Dev', 'fb_link' => 'https://www.facebook.com/siskarmrz/'],
+        ['id' => 'MEM3', 'name' => 'Juan Miguel G. Torres', 'role' => 'UI/UX Designer', 'fb_link' => 'https://www.facebook.com/the.jeyemz'],
+        ['id' => 'MEM4', 'name' => 'Josef Karol A. Velayo', 'role' => 'Backend Dev', 'fb_link' => 'https://www.facebook.com/josef.velayo'],
+        ];
+        @endphp
 
-        <div class="col-lg-6">
-            <div class="about-card">
-                <h3 class="fw-bold mb-4">We're on a Mission to Deliver Happiness</h3>
-                <p class="text-muted mb-4">
-                    Founded in 2023, EatsWay! started with a simple idea: high-quality, chef-prepared meals should be accessible to everyone, anywhere. We believe that food is more than just fuel—it's an experience that brings people together.
-                </p>
-                <p class="text-muted mb-4">
-                    Our team works with local farmers to source the freshest organic ingredients. Every burger, pizza, and salad we deliver is crafted with passion and delivered with a smile.
-                </p>
-                
-                <div class="row mt-5">
-                    <div class="col-4 stat-box">
-                        <span class="stat-number">10k+</span>
-                        <span class="stat-label">Orders</span>
-                    </div>
-                    <div class="col-4 stat-box">
-                        <span class="stat-number">20+</span>
-                        <span class="stat-label">Branches</span>
-                    </div>
-                    <div class="col-4 stat-box">
-                        <span class="stat-number">5.0</span>
-                        <span class="stat-label">Rating</span>
-                    </div>
+        @foreach($team as $member)
+        <div class="col-md-6 col-lg-5">
+            <div class="member-card">
+                <div class="member-img-container">
+                    <img src="{{ asset('images/' . $member['id'] . '.jpg') }}" alt="{{ $member['name'] }}" class="member-img">
+                </div>
+
+                <h4 class="member-name">{{ $member['name'] }}</h4>
+                <span class="member-role">{{ $member['role'] }}</span>
+
+                <div class="mt-3">
+                    <a href="{{ $member['fb_link'] }}" target="_blank" class="fb-btn">
+                        <i class="fab fa-facebook"></i> View Profile
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="row text-center mb-5 g-4">
-        <div class="col-md-4">
-            <div class="p-4 bg-white rounded-4 shadow-sm h-100">
-                <div class="mb-3 fs-1">🌱</div>
-                <h5 class="fw-bold">Fresh Ingredients</h5>
-                <p class="text-muted small">We only use organic, non-GMO ingredients sourced directly from local farms.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="p-4 bg-white rounded-4 shadow-sm h-100">
-                <div class="mb-3 fs-1">⚡</div>
-                <h5 class="fw-bold">Fast Delivery</h5>
-                <p class="text-muted small">Our localized delivery network ensures your food arrives hot and fresh every time.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="p-4 bg-white rounded-4 shadow-sm h-100">
-                <div class="mb-3 fs-1">👨‍🍳</div>
-                <h5 class="fw-bold">Expert Chefs</h5>
-                <p class="text-muted small">Our kitchen is led by world-class chefs who prioritize flavor and nutrition.</p>
-            </div>
-        </div>
+        @endforeach
     </div>
 </div>
 

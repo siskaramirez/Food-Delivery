@@ -207,8 +207,8 @@
 
                         <td>
                             @if($lastOrderId !== $row->orderid)
-                            <span class="status-badge order-badge {{ strtolower($row->order_status) }}">
-                                {{ $row->order_status }}
+                            <span class="status-badge order-badge {{ strtolower($row->status_name) }}">
+                                {{ $row->status_name }}
                             </span>
                             @endif
                         </td>
@@ -226,7 +226,7 @@
                         </td>
 
                         <td class="small text-muted">
-                            @if($lastOrderId !== $row->orderid) {{ $order->license ?? 'NA' }} @endif
+                            @if($lastOrderId !== $row->orderid) {{ $row->license ?? 'NA' }} @endif
                         </td>
 
                         <td class="text-muted small">

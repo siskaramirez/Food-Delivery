@@ -75,8 +75,14 @@
                         <select name="driver_license" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
                             <option value="">Select Driver</option>
                             @foreach($drivers as $driver)
-                            <option value="{{ $driver->license }}" {{ $order->license == $driver->license ? 'selected' : '' }}>
-                                {{ $driver->license }}
+                            @php
+                            $isUnavailable = ($driver->isAvailable == 'UA' && $order->license !== $driver->license);
+                            @endphp
+                            <option value="{{ $driver->license }}"
+                                {{ $order->license == $driver->license ? 'selected' : '' }}
+                                {{ $isUnavailable ? 'disabled' : '' }}
+                                style="{{ $isUnavailable ? 'color: #ccc; background-color: #f8f9fa;' : 'color: #333;' }}">
+                                {{ $driver->license }} {{ $isUnavailable ? '(Unavailable)' : '' }}
                             </option>
                             @endforeach
                         </select>
@@ -86,9 +92,9 @@
                     <div class="mb-2">
                         <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ORDER STATUS</label>
                         <select name="order_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                            <option value="Pending" {{ $order->order_status == 'Pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="Completed" {{ $order->order_status == 'Completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="Cancelled" {{ $order->order_status == 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            <option value="Pending" {{ $order->status_name == 'Pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="Completed" {{ $order->status_name == 'Completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="Cancelled" {{ $order->status_name == 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
                         </select>
                     </div>
 
@@ -97,7 +103,6 @@
                         <select name="payment_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
                             <option value="Pending" {{ $order->paymentstatus == 'Pending' ? 'selected' : '' }}>Pending</option>
                             <option value="Paid" {{ $order->paymentstatus == 'Paid' ? 'selected' : '' }}>Paid</option>
-                            <option value="Refunded" {{ $order->paymentstatus == 'Refunded' ? 'selected' : '' }}>Refunded</option>
                         </select>
                     </div>
 
@@ -105,11 +110,11 @@
                     <div class="mb-2">
                         <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">DELIVERY STATUS</label>
                         <select name="delivery_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                            @foreach(['Pending', 'Assigned', 'Picked Up', 'En Route', 'Delivered'] as $status)
-                            <option value="{{ $status }}" {{ ($order->delivery_status ?? 'Pending') == $status ? 'selected' : '' }}>
-                                {{ $status }}
-                            </option>
-                            @endforeach
+                            <option value="Pending" {{ ($order->deliverystatus ?? 'Pending') == 'Pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="Assigned" {{ ($order->deliverystatus ?? '') == 'Assigned' ? 'selected' : '' }}>Assigned</option>
+                            <option value="Picked Up" {{ ($order->deliverystatus ?? '') == 'Picked Up' ? 'selected' : '' }}>Picked Up</option>
+                            <option value="En Route" {{ ($order->deliverystatus ?? '') == 'En Route' ? 'selected' : '' }}>En Route</option>
+                            <option value="Delivered" {{ ($order->deliverystatus ?? '') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
                         </select>
                     </div>
                     @endif

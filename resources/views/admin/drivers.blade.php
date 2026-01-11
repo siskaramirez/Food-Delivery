@@ -45,7 +45,7 @@
         color: #2e7d32;
     }
 
-    .status-on-delivery {
+    .status-unavailable {
         background-color: #ffebee;
         color: #c62828;
     }
@@ -78,10 +78,10 @@
                             <td>{{ $driver->contactno }}</td>
                             <td>{{ $driver->plateno }}</td>
                             <td>
-                                @if($driver->auto_status == 'AV')
+                                @if($driver->isAvailable == 'AV')
                                 <span class="status-badge status-available">Available</span>
                                 @else
-                                <span class="status-badge status-on-delivery">On Delivery</span>
+                                <span class="status-badge status-unavailable">Unavailable</span>
                                 @endif
                             </td>
                         </tr>

@@ -58,7 +58,7 @@
         display: flex;
         justify-content: space-between;
         padding: 8px 0;
-        border-bottom: 1px solid #fdf0ee;
+        border-bottom: 1px solid #e6e5e5ff;
         font-size: 0.9rem;
     }
 
@@ -85,7 +85,7 @@
 
     .history-table td {
         padding: 10px 0;
-        border-bottom: 1px solid #fff1f1;
+        border-bottom: 1px solid #e6e5e5ff;
     }
 
     .empty-state {
@@ -101,14 +101,36 @@
         border-radius: 8px;
         font-size: 0.75rem;
         font-weight: 700;
+        text-transform: uppercase;
+        display: inline-block;
     }
 
-    .paid {
+    .status-badge.paid {
         background: #e8f5e9;
         color: #2e7d32;
     }
 
-    .pending {
+    .status-badge.pending {
+        background: #fff3e0;
+        color: #ef6c00;
+    }
+
+    .status-badge.refunded {
+        background: #eceff1;
+        color: #455a64;
+    }
+
+    .status-badge.completed {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-badge.cancelled {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .status-badge.order-pending {
         background: #fff3e0;
         color: #ef6c00;
     }
@@ -135,7 +157,8 @@
         margin-top: 20px;
     }
 
-    .btn-confirm, .btn-cancel {
+    .btn-confirm,
+    .btn-cancel {
         flex: 1;
         height: 45px;
         border-radius: 10px;
@@ -204,13 +227,13 @@
                         <div class="history-section">
                             <h6 class="fw-bold mb-3" style="color: #ff6b6b;"><i class="fas fa-shopping-bag me-2"></i>Order History</h6>
                             @if(count($user->orders) > 0)
-                            <table class="history-table">
+                            <table class="history-table text-center">
                                 <thead>
                                     <tr>
                                         <th>OrderID</th>
                                         <th>Date</th>
                                         <th>Payment</th>
-                                        <th>Status</th>
+                                        <th>Order</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -223,7 +246,15 @@
                                                 {{ $order->paymentstatus }}
                                             </span>
                                         </td>
-                                        <td class="text-muted">{{ $order->status_name }}</td>
+                                        <td>
+                                            @php
+                                            $order_stats = strtolower($order->status_name);
+                                            if($order_stats == 'pending') $order_stats = 'order-pending';
+                                            @endphp
+                                            <span class="status-badge {{ $order_stats }}">
+                                                {{ $order->status_name }}
+                                            </span>
+                                        </td>
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -284,10 +315,10 @@
         if (userToDelete) {
             const form = document.getElementById(`delete-form-${userToDelete}`);
             const confirmBtn = this;
-            
+
             confirmBtn.disabled = true;
             confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-            
+
             form.submit();
         }
     });

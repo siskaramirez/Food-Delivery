@@ -231,7 +231,7 @@
 
                 <div class="d-flex align-items-center">
                     @if(session('user_role') === 'admin')
-                    <a href="{{ route('logout.submit') }}" class="btn btn-outline-secondary me-4" onclick="handleLogout()">Logout</a>
+                    <a href="{{ route('logout.submit') }}" class="btn btn-signup me-4" onclick="handleLogout()">Logout</a>
                     @elseif(Auth::check())
                     <a href="{{ route('cart.page') }}" class="btn-cart {{ request()->routeIs('cart.page') ? 'active' : '' }}" id="header-cart-btn">
                         My Cart<span id="header-cart-count" class="d-none ms-1">0</span>
@@ -260,7 +260,8 @@
                     </div>
 
                     @else
-                    <a href="{{ route('signup.page') }}" id="nav-signup-btn" class="btn btn-signup ms-3 me-3">Sign Up</a>
+                    <a href="{{ route('signin.page') }}" id="nav-signup-btn" class="btn btn-signup me-3">Sign In</a>
+                    <a href="{{ route('signup.page') }}" id="nav-signup-btn" class="btn btn-signup me-3">Sign Up</a>
                     @endif
                 </div>
             </div>
