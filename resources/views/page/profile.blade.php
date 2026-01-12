@@ -81,7 +81,7 @@
             <h2 class="fw-bold mb-2 text-white" id="sidebar-name">{{ $user['name'] }}</h2>
             <p class="text-white mb-4 d-none" id="member-since">Member since {{ $user['joined'] }}</p>
 
-            <a href="{{ route('profile.edit') }}" class="btn btn-edit-profile btn-danger rounded-pill px-5 w-100 fw-bold mt-auto mb-1">Edit Profile</a>
+            <a href="{{ route('profile.edit') }}" class="btn btn-edit-profile rounded-pill px-5 w-100 fw-bold mt-auto mb-1">Edit Profile</a>
         </div>
 
         <div class="col-lg-8 p-5">

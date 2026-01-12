@@ -56,14 +56,14 @@
         box-shadow: none;
     }
 
-    .btn-cancel {
+    .btn-edit-profile {
         background-color: white;
         color: #333;
         border: none;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
     }
 
-    .btn-cancel:hover {
+    .btn-edit-profile:hover {
         background-color: #333;
         transform: translateY(-3px);
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
@@ -117,8 +117,8 @@
             </div>
             <h2 class="fw-bold mb-2 text-white" id="sidebar-name">{{ $user['name'] }}</h2>
             <p class="text-white mb-4">Member since {{ $user['joined'] }}</p>
-
-            <a href="{{ route('profile.page') }}" class="btn btn-cancel rounded-pill px-5 w-100 fw-bold mt-auto mb-1 text-decoration-none text-center">Cancel</a>
+            
+            <a href="{{ route('profile.page') }}" class="btn btn-edit-profile rounded-pill px-5 w-100 fw-bold mt-auto mb-1">Cancel</a>
         </div>
 
         <div class="col-lg-8 p-5">
