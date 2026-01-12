@@ -31,10 +31,10 @@ Route::get('/profile', [PageController::class, 'profile'])->name('profile.page')
 Route::get('/profile/edit', [PageController::class, 'edit'])->name('profile.edit');
 Route::post('/profile/edit', [PageController::class, 'update'])->name('profile.update');
 Route::get('/payment', [PageController::class, 'payment'])->name('payment.page');
+Route::delete('/profile/delete/{id}', [PageController::class, 'deleteUser'])->name('profile.delete');
 
 Route::get('/admin/home', [AdminController::class, 'home'])->name('home.admin');
 Route::get('/logout', [AdminController::class, 'logout'])->name('logout.submit');
-Route::delete('/admin/user/delete/{id}', [AdminController::class, 'deleteUser'])->name('user.delete');
 Route::get('/admin/orders', [AdminController::class, 'orders'])->name('orders.admin');
 Route::put('/admin/orders/update/{id}', [AdminController::class, 'updateOrder'])->name('order.update');
 Route::get('/admin/menu', [AdminController::class, 'menu'])->name('menu.admin');

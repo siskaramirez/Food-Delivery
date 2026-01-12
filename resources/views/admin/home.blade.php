@@ -134,64 +134,6 @@
         background: #fff3e0;
         color: #ef6c00;
     }
-
-    .custom-dialog {
-        border: none;
-        border-radius: 20px;
-        padding: 30px;
-        width: 90%;
-        max-width: 400px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-        /*background: #fff;*/
-    }
-
-    .custom-dialog::backdrop {
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(1px);
-    }
-
-    .dialog-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        margin-top: 20px;
-    }
-
-    .btn-confirm,
-    .btn-cancel {
-        flex: 1;
-        height: 45px;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        border: none;
-        display: flex;
-        transition: all 0.2s ease;
-        align-items: center;
-        justify-content: center;
-        text-transform: uppercase;
-        cursor: pointer;
-    }
-
-    .btn-confirm {
-        background: #ff6b6b;
-        color: white;
-        /*transition: 0.2s;*/
-    }
-
-    .btn-confirm:hover {
-        background: #ee5253;
-    }
-
-    .btn-cancel {
-        background: #f0f1f1ff;
-        color: #6c757d;
-        /*transition: 0.2s;*/
-    }
-
-    .btn-cancel:hover {
-        background: #e2e6ea;
-    }
 </style>
 
 <div class="admin-main-container mt-5">
@@ -266,17 +208,6 @@
                             </div>
                             @endif
                         </div>
-
-                        <div class="pt-3 border-top">
-                            <form id="delete-form-{{ $user->userid }}" action="{{ route('user.delete', $user->userid) }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" onclick="openDeleteModal('{{ $user->userid }}', '{{ $user->uname }}')" class="btn btn-sm w-100 fw-bold"
-                                    style="background-color: #fff1f1; color: #dc3545; border: 1px solid #f8d7da; border-radius: 10px; padding: 10px;">
-                                    <i class="fas fa-trash-alt me-2"></i>Remove Account
-                                </button>
-                            </form>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -285,47 +216,3 @@
     </div>
 </div>
 
-<dialog id="deleteUserModal" class="custom-dialog">
-    <div class="dialog-content">
-        <h3 class="fw-bold mb-3">Confirm Deletion</h3>
-        <p class="text-muted text-center">Are you sure you want to remove<br><b><span id="modal-user-name"></span></b>?<br>This will permanently remove all their records.</p>
-        <div class="dialog-actions">
-            <button type="button" onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
-            <button type="button" id="btnConfirmDeleteUser" class="btn-confirm">Delete</button>
-        </div>
-    </div>
-</dialog>
-
-<script>
-    const deleteModal = document.getElementById('deleteUserModal');
-    let userToDelete = null;
-
-    function openDeleteModal(userId, userName) {
-        userToDelete = userId;
-        document.getElementById('modal-user-name').innerText = userName;
-        deleteModal.showModal();
-    }
-
-    function closeDeleteModal() {
-        deleteModal.close();
-        userToDelete = null;
-    }
-
-    document.getElementById('btnConfirmDeleteUser').addEventListener('click', function() {
-        if (userToDelete) {
-            const form = document.getElementById(`delete-form-${userToDelete}`);
-            const confirmBtn = this;
-
-            confirmBtn.disabled = true;
-            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-            form.submit();
-        }
-    });
-
-    deleteModal.addEventListener('click', (e) => {
-        if (e.target === deleteModal) closeDeleteModal();
-    });
-</script>
-
-@endSection

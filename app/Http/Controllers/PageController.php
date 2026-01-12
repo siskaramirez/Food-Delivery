@@ -359,6 +359,29 @@ class PageController extends Controller
         }
     }
 
+    public function deleteUser($id)
+    {
+        try {
+            DB::transaction(function () use ($id) {
+                $orderIds = DB::table('orders')->where('userid', $id)->pluck('orderid');
+
+                DB::table('order_items')->whereIn('orderid', $orderIds)->delete();
+                DB::table('payments')->whereIn('orderid', $orderIds)->delete();
+                DB::table('delivery')->where('orderid', $id)->delete();
+                DB::table('deliveryhistorylog')->where('orderid', $id)->delete();
+                //DB::table('orderhistorylog')->where('orderid', $id)->delete();
+
+                DB::table('orders')->where('userid', $id)->delete();
+
+                DB::table('users')->where('userid', $id)->delete();
+            });
+
+            return redirect()->back()->with('success', 'Account and all their records deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to delete account.');
+        }
+    }
+
     private function getUsers()
     {
         if (Auth::check()) {

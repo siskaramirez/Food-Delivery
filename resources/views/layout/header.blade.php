@@ -161,6 +161,64 @@
     .dropdown-toggle::after {
         display: none;
     }
+
+    .custom-dialog {
+        border: none;
+        border-radius: 20px;
+        padding: 30px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        /*background: #fff;*/
+    }
+
+    .custom-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(1px);
+    }
+
+    .dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .btn-confirm,
+    .btn-cancel {
+        flex: 1;
+        height: 45px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border: none;
+        display: flex;
+        transition: all 0.2s ease;
+        align-items: center;
+        justify-content: center;
+        text-transform: uppercase;
+        cursor: pointer;
+    }
+
+    .btn-confirm {
+        background: #ff6b6b;
+        color: white;
+        /*transition: 0.2s;*/
+    }
+
+    .btn-confirm:hover {
+        background: #ee5253;
+    }
+
+    .btn-cancel {
+        background: #f0f1f1ff;
+        color: #6c757d;
+        /*transition: 0.2s;*/
+    }
+
+    .btn-cancel:hover {
+        background: #e2e6ea;
+    }
 </style>
 
 <div class="container">
@@ -256,8 +314,16 @@
                                 <hr class="dropdown-divider">
                             </li>
                             <li><a class="dropdown-item text-danger" href="{{ route('logout.submit') }}" onclick="handleLogout()">Logout</a></li>
+                            <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="openDeleteModal('{{ Auth::user()->userid }}', '{{ Auth::user()->name }}')">Delete Account</a></li>
                         </ul>
                     </div>
+
+                    <form id="delete-form-{{ Auth::user()->userid }}"
+                        action="{{ route('profile.delete', Auth::user()->userid) }}"
+                        method="POST" style="display: none;">
+                        @csrf
+                        @method('DELETE')
+                    </form>
 
                     @else
                     <a href="{{ route('signin.page') }}" id="nav-signup-btn" class="btn btn-signup me-3">Sign In</a>
@@ -269,7 +335,52 @@
     </div>
 </div>
 
+<dialog id="deleteUserModal" class="custom-dialog">
+    <div class="dialog-content">
+        <h3 class="fw-bold mb-3">Confirm Deletion</h3>
+        <p class="text-muted">Are you sure you want to remove your account?<br>This will permanently remove all the records.</p>
+        <div class="dialog-actions">
+            <button type="button" onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
+            <button type="button" id="btnConfirmDeleteUser" class="btn-confirm">Delete</button>
+        </div>
+    </div>
+</dialog>
+
 <script>
+    const deleteModal = document.getElementById('deleteUserModal');
+    let userToDelete = null;
+
+    function openDeleteModal(userId) {
+        userToDelete = userId;
+        
+        if (deleteModal) {
+            deleteModal.showModal();
+        }
+    }
+
+    function closeDeleteModal() {
+        if (deleteModal) {
+            deleteModal.close();
+        }
+        userToDelete = null;
+    }
+
+    document.getElementById('btnConfirmDeleteUser').addEventListener('click', function() {
+        if (userToDelete) {
+            const form = document.getElementById(`delete-form-${userToDelete}`);
+            const confirmBtn = this;
+
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            form.submit();
+        }
+    });
+
+    deleteModal.addEventListener('click', (e) => {
+        if (e.target === deleteModal) closeDeleteModal();
+    });
+
     function updateNavbar() {
         const isAuth = localStorage.getItem('eatsway_authenticated');
         const userEmail = localStorage.getItem('user_email');
