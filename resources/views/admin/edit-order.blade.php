@@ -69,57 +69,51 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-body p-3">
-                    @if($order->deliveryneeded == 1)
-                    <div class="mb-2">
-                        <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ASSIGN DRIVER</label>
-                        <select name="driver_license" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                            <option value="">Select Driver</option>
-                            @foreach($drivers as $driver)
-                            @php
-                            $isUnavailable = ($driver->isAvailable == 'UA' && $order->license !== $driver->license);
-                            @endphp
-                            <option value="{{ $driver->license }}"
-                                {{ $order->license == $driver->license ? 'selected' : '' }}
-                                {{ $isUnavailable ? 'disabled' : '' }}
-                                style="{{ $isUnavailable ? 'color: #ccc; background-color: #f8f9fa;' : 'color: #333;' }}">
-                                {{ $driver->license }} {{ $isUnavailable ? '(Unavailable)' : '' }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @endif
-
                     <div class="mb-2">
                         <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ORDER STATUS</label>
-                        <select name="order_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                            <option value="Pending" {{ $order->status_name == 'Pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="Completed" {{ $order->status_name == 'Completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="Cancelled" {{ $order->status_name == 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        <select name="order_status" id="orderStatusSelect-{{ $order->orderid }}" onchange="toggleDeliveryFields('{{ $order->orderid }}')" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
+                            <option value="Pending" {{ $order->order_status_id == 1 ? 'selected' : '' }}>Pending</option>
+                            <option value="Completed" {{ $order->order_status_id == 2 ? 'selected' : '' }}>Completed</option>
+                            <option value="Cancelled" {{ $order->order_status_id == 3 ? 'selected' : '' }}>Cancelled</option>
                         </select>
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">PAYMENT STATUS</label>
-                        <select name="payment_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                            <option value="Pending" {{ $order->paymentstatus == 'Pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="Paid" {{ $order->paymentstatus == 'Paid' ? 'selected' : '' }}>Paid</option>
                         </select>
                     </div>
 
                     @if($order->deliveryneeded == 1)
-                    <div class="mb-2">
-                        <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">DELIVERY STATUS</label>
-                        <select name="delivery_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                            <option value="Pending" {{ ($order->deliverystatus ?? 'Pending') == 'Pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="Assigned" {{ ($order->deliverystatus ?? '') == 'Assigned' ? 'selected' : '' }}>Assigned</option>
-                            <option value="Picked Up" {{ ($order->deliverystatus ?? '') == 'Picked Up' ? 'selected' : '' }}>Picked Up</option>
-                            <option value="En Route" {{ ($order->deliverystatus ?? '') == 'En Route' ? 'selected' : '' }}>En Route</option>
-                            <option value="Delivered" {{ ($order->deliverystatus ?? '') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
-                        </select>
+                    <div id="delivery-section-{{ $order->orderid }}"
+                        class="{{ $order->order_status_id != 2 ? 'd-none' : '' }}">
+                        
+                        <div class="mb-2">
+                            <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ASSIGN DRIVER</label>
+                            <select name="driver_license" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
+                                <option value="">Select Driver</option>
+                                @foreach($drivers as $driver)
+                                @php
+                                $isUnavailable = ($driver->isAvailable == 'UA' && $order->license !== $driver->license);
+                                @endphp
+                                <option value="{{ $driver->license }}"
+                                    {{ $order->license == $driver->license ? 'selected' : '' }}
+                                    {{ $isUnavailable ? 'disabled' : '' }}
+                                    style="{{ $isUnavailable ? 'color: #ccc; background-color: #f8f9fa;' : 'color: #333;' }}">
+                                    {{ $driver->license }} {{ $isUnavailable ? '(Unavailable)' : '' }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">DELIVERY STATUS</label>
+                            <select name="delivery_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
+                                <option value="Pending" {{ ($order->deliverystatus ?? 'Pending') == 'Pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="Assigned" {{ ($order->deliverystatus ?? '') == 'Assigned' ? 'selected' : '' }}>Assigned</option>
+                                <option value="Picked Up" {{ ($order->deliverystatus ?? '') == 'Picked Up' ? 'selected' : '' }}>Picked Up</option>
+                                <option value="En Route" {{ ($order->deliverystatus ?? '') == 'En Route' ? 'selected' : '' }}>En Route</option>
+                                <option value="Delivered" {{ ($order->deliverystatus ?? '') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
+                            </select>
+                        </div>
                     </div>
                     @endif
                 </div>
-
                 <div class="modal-footer border-0 pt-0 px-3 pb-3">
                     <button type="button"
                         onclick="confirmUpdate('{{ $order->orderid }}')"

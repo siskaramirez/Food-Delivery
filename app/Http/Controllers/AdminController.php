@@ -63,39 +63,31 @@ class AdminController extends Controller
     {
         $request->validate([
             'order_status'    => 'required|string',
-            'payment_status'  => 'required|string',
             'delivery_status' => 'nullable|string',
             'driver_license'  => 'nullable|string',
         ]);
 
         try {
             DB::transaction(function () use ($request, $id) {
-                // A. Update Order Status (Table: orders)
+                $order = DB::table('orders')->where('orderid', $id)->first();
                 $status = DB::table('order_status')->where('status_name', $request->order_status)->first();
+
                 if ($status) {
                     DB::table('orders')->where('orderid', $id)->update([
-                        'order_status_id' => $status->order_status_id
+                        'order_status_id' => $status->order_status_id,
+                        'datelastmodified' => now()
                     ]);
                 }
 
-                // B. Update Payment Status (Table: payments)
-                DB::table('payments')->where('orderid', $id)->update([
-                    'paymentstatus' => $request->payment_status
-                ]);
-
-                $existingDelivery = DB::table('delivery')->where('orderid', $id)->first();
-
-                if ($existingDelivery) {
-                    // C. Update Delivery Status kung mayroon (Table: delivery)
+                if ($order->deliveryneeded == 1) {
                     DB::table('delivery')->where('orderid', $id)->update([
                         'license' => $request->driver_license,
-                        'deliverystatus' => $request->delivery_status,
-                        'deliveryaddress'  => $existingDelivery->deliveryaddress
+                        'deliverystatus' => $request->delivery_status ?? 'Pending',
                     ]);
                 }
             });
 
-            return redirect()->route('admin.orders')->with('success', "Order #{$id} updated successfully!");
+            return redirect()->route('orders.admin')->with('success', "Order #{$id} updated successfully!");
         } catch (\Exception $e) {
             return redirect()->back()->with('error', "Update failed: " . $e->getMessage());
         }
@@ -106,7 +98,6 @@ class AdminController extends Controller
         $driver = DB::table('driver')->where('license', $license)->first();
 
         if ($driver) {
-            // Magpalitan ang 'AV' at 'UA' base sa current status
             $newStatus = ($driver->isAvailable == 'AV') ? 'UA' : 'AV';
 
             DB::table('driver')->where('license', $license)->update(['isAvailable' => $newStatus]);
@@ -162,6 +153,7 @@ class AdminController extends Controller
                 'order_items.quantity',
                 'order_items.totalprice',
                 'orders.deliveryneeded',
+                'orders.order_status_id',
                 'order_status.status_name',
                 'payments.paymentstatus',
                 'payments.paymentmethod',
@@ -211,7 +203,12 @@ class AdminController extends Controller
         $search = $request->query('search');
 
         $drivers = DB::table('driver')
-            ->select('license', 'drivername', 'contactno', 'plateno', 'isAvailable'
+            ->select(
+                'license',
+                'drivername',
+                'contactno',
+                'plateno',
+                'isAvailable'
             )
             ->when($search, function ($query, $search) {
                 return $query->where('driver.drivername', 'like', "%{$search}%")

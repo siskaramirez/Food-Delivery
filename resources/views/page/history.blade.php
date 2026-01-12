@@ -248,11 +248,20 @@
                     <span class="order-number-label">Order #{{ $order->orderid }}</span>
 
                     <div class="info-grid">
+                        @if($order->deliveryneeded == 0)
+                        <div class="info-item">
+                            <span class="info-label">Service Type</span>
+                            <span class="info-value">Pick-up</span>
+                        </div>
+                        @else
                         <div class="info-item">
                             <span class="info-label">Rider</span>
                             <span class="info-value">{{ $order->drivername }}</span>
+                            @if($order->contactno)
                             <span style="font-size: 0.75rem; color: #888;">{{ $order->contactno }}</span>
+                            @endif
                         </div>
+                        @endif
                         <div class="info-item">
                             <span class="info-label">Transaction Date</span>
                             <span class="info-value">{{ date('M d, Y', strtotime($order->datelastmodified)) }}</span>

@@ -363,11 +363,17 @@
     function toggleServiceFields() {
         const serviceType = document.getElementById('service-type-select').value;
         const deliveryWrapper = document.getElementById('delivery-details-wrapper');
+        const paymentSelect = document.getElementById('payment-method-select');
+        const firstPaymentOption = paymentSelect.options[0];
 
         if (serviceType === "Pick-up") {
             deliveryWrapper.classList.add('d-none');
+            firstPaymentOption.value = "Cash";
+            firstPaymentOption.textContent = "Cash";
         } else {
             deliveryWrapper.classList.remove('d-none');
+            firstPaymentOption.value = "Cash on Delivery";
+            firstPaymentOption.textContent = "Cash on Delivery (COD)";
         }
     }
 
@@ -439,7 +445,7 @@
         sessionStorage.setItem('temp_method', paymentMethod);
         sessionStorage.setItem('temp_service', serviceType);
 
-        if (paymentMethod === "Cash on Delivery") {
+        if (paymentMethod === "Cash on Delivery" || paymentMethod === "Cash") {
             sessionStorage.setItem('temp_ref', 'COD-PAYMENT');
             sessionStorage.setItem('payment_done', 'true');
             window.location.href = "{{ route('cart.checkout') }}";

@@ -49,11 +49,13 @@
 
     <script>
         const paymentMethod = sessionStorage.getItem('temp_method') || 'Unknown Payment';
-        
-        if (paymentMethod === 'Cash on Delivery (COD)') {
-            sessionStorage.setItem('payment_done', 'true');
-            sessionStorage.setItem('temp_ref', 'COD-PAYMENT');
-            window.location.href = "{{ route('cart.checkout') }}";
+
+        if (paymentMethod === 'Cash on Delivery (COD)' || paymentMethod === 'Cash') {
+            if (sessionStorage.getItem('payment_done') !== 'true') {
+                sessionStorage.setItem('payment_done', 'true');
+                sessionStorage.setItem('temp_ref', 'COD-PAYMENT');
+                window.location.href = "{{ route('cart.checkout') }}";
+            }
         }
 
         const paymentDone = sessionStorage.getItem('payment_done');

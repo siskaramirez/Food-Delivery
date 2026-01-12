@@ -288,7 +288,7 @@ class PageController extends Controller
             DB::beginTransaction();
 
             $deliveryNeeded = ($request->service === 'Delivery') ? 1 : 0;
-            $paymentStatus = ($request->mop === 'Cash on Delivery') ? 'Pending' : 'Paid';
+            $paymentStatus = ($request->mop === 'Cash on Delivery' || $request->mop === 'Cash') ? 'Pending' : 'Paid';
 
             $orderId = DB::table('orders')->insertGetId([
                 'userid'            => $user->userid,
@@ -328,9 +328,13 @@ class PageController extends Controller
                 ]);
             }
 
-            $finalReference = ($request->mop === 'Cash on Delivery (COD)')
-                ? 'COD-PAYMENT'
-                : $request->ref;
+            if ($request->mop === 'Cash on Delivery (COD)') {
+                $finalReference = 'COD-PAYMENT';
+            } elseif ($request->mop === 'Cash') {
+                $finalReference = 'CASH-PICKUP';
+            } else {
+                $finalReference = $request->ref;
+            }
 
             DB::table('payments')->insert([
                 'orderid'       => $orderId,

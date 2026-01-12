@@ -247,19 +247,31 @@
                     <span class="order-number-label">Order #{{ $order->orderid }}</span>
 
                     <div class="info-grid">
+                        @if($order->deliveryneeded == 0)
+                        <div class="info-item">
+                            <span class="info-label">Service Type</span>
+                            <span class="info-value">Pick-up</span>
+                        </div>
+                        @else
                         <div class="info-item">
                             <span class="info-label">Rider</span>
                             @if($order->drivername)
                             <span class="info-value">{{ $order->drivername }}</span>
                             <span style="font-size: 0.75rem; color: #888;">{{ $order->contactno }}</span>
                             @else
-                            <span class="info-value text-muted">Not assigned yet</span>
+                            <span class="info-value">Not assigned yet</span>
                             @endif
                         </div>
+
                         <div class="info-item">
                             <span class="info-label">Plate Number</span>
-                            <span class="info-value">{{ $order->plateno ?? 'TBA' }}</span>
+                            @if($order->plateno)
+                            <span class="info-value">{{ $order->plateno }}</span>
+                            @else
+                            <span class="info-value">TBA</span>
+                            @endif
                         </div>
+                        @endif
                         <div class="info-item">
                             <span class="info-label">Payment Method</span>
                             <span class="info-value">{{ $order->paymentmethod }}</span>
