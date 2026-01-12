@@ -117,7 +117,7 @@
             </div>
             <h2 class="fw-bold mb-2 text-white" id="sidebar-name">{{ $user['name'] }}</h2>
             <p class="text-white mb-4">Member since {{ $user['joined'] }}</p>
-            
+
             <a href="{{ route('profile.page') }}" class="btn btn-edit-profile rounded-pill px-5 w-100 fw-bold mt-auto mb-1">Cancel</a>
         </div>
 
@@ -150,6 +150,21 @@
                         <input type="text" name="address" id="input-address" class="edit-input" value="{{ $user['address'] }}" required>
                         @error('address') <small class="text-danger">{{ $message }}</small> @enderror
                     </div>
+
+                    <div class="col-md-6">
+                        <label class="info-label">Age</label>
+                        <input type="number" name="age" id="input-age" class="edit-input" value="{{ $user['age'] }}" readonly>
+                        <small class="text-muted">Age cannot be changed.</small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="info-label">Gender</label>
+                        <select name="gender" id="input-gender" class="edit-input" required>
+                            <option value="Male" {{ $user['gender'] == 'Male' ? 'selected' : '' }}>Male</option>
+                            <option value="Female" {{ $user['gender'] == 'Female' ? 'selected' : '' }}>Female</option>
+                        </select>
+                        @error('gender') <small class="text-danger">{{ $message }}</small> @enderror
+                    </div>
                 </div>
 
                 <div class="mt-4 text-end">
@@ -165,18 +180,20 @@
         const name = document.getElementById('input-name').value;
         const phone = document.getElementById('input-phone').value;
         const address = document.getElementById('input-address').value;
+        const gender = document.getElementById('input-gender').value;
 
         localStorage.setItem('user_name', name);
         localStorage.setItem('user_phone', phone);
         localStorage.setItem('user_address', address);
+        localStorage.setItem('user_gender', gender);
 
         const sidebarName = document.getElementById('sidebar-name');
         if (sidebarName) sidebarName.innerText = name;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        const fields = ['name', 'email', 'phone', 'address'];
-        
+        const fields = ['name', 'email', 'phone', 'address', 'age', 'gender'];
+
         fields.forEach(field => {
             const savedValue = localStorage.getItem(`user_${field}`);
             const inputElement = document.getElementById(`input-${field}`);

@@ -70,14 +70,15 @@ class PageController extends Controller
     public function update(Request $request)
     {
         $rules = [
-            'name' => 'required|string|max:50',
+            'name'    => 'required|string|max:50',
             'address' => 'required|max:100',
-            'phone' => 'required|numeric|digits:11|regex:/^09/',
+            'phone'   => 'required|numeric|digits:11|regex:/^09/',
+            'gender'  => 'required|in:male,female',
         ];
 
         $messages = [
-            'phone.numeric'  => 'The phone field must contain numbers only.',
-            'phone.digits'   => 'The phone field must be 11 digits.',
+            'phone.numeric' => 'The phone field must contain numbers only.',
+            'phone.digits'  => 'The phone field must be 11 digits.',
             'phone.regex'   => 'The phone number must start with 09.',
         ];
 
@@ -87,6 +88,7 @@ class PageController extends Controller
             'uname'     => $request->name,
             'address'   => $request->address,
             'contactno' => $request->phone,
+            'gender'    => $request->gender,
         ]);
 
         return redirect()->route('profile.page')->with('success', 'Profile updated!');
@@ -386,11 +388,17 @@ class PageController extends Controller
     {
         if (Auth::check()) {
             $user = Auth::user();
+            $genderMap = [
+                'M' => 'Male',
+                'F' => 'Female'
+            ];
             return [
                 'name'        => $user->uname,
                 'email'       => $user->username,
                 'phone'       => $user->contactno,
                 'address'     => $user->address,
+                'age'         => $user->age,
+                'gender'      => $genderMap[$user->gender],
                 'joined'      => date('F Y', strtotime($user->dateregistered)),
                 'profile_pix' => asset('images/profile.jpg')
             ];
@@ -406,6 +414,7 @@ class PageController extends Controller
         ];
     }
 
+    /*
     private function getDrivers()
     {
         return [
@@ -416,5 +425,5 @@ class PageController extends Controller
             'eta' => "15 mins",
             'status' => "Preparing"
         ];
-    }
+    } */
 }

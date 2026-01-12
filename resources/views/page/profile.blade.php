@@ -104,9 +104,17 @@
                     <label class="info-label">Address</label>
                     <p id="display-address" class="fw-bold fs-5 border-bottom pb-2 text-dark">{{ $user['address'] }}</p>
                 </div>
+                <div class="col-md-6">
+                    <label class="info-label">Age</label>
+                    <p id="display-age" class="fw-bold fs-5 border-bottom pb-2 text-dark">{{ $user['age'] . ' years old' }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="info-label">Gender</label>
+                    <p id="display-gender" class="fw-bold fs-5 border-bottom pb-2 text-dark">{{ $user['gender'] }}</p>
+                </div>
             </div>
 
-            
+
             <!-- WARNING BUTTON
             <div class="mt-4">
                 <h4 class="fw-bold mb-3 text-dark">Quick Stats</h4>
@@ -128,7 +136,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const isAuth = localStorage.getItem('eatsway_authenticated');
-        
+
         if (isAuth !== 'true') {
             window.location.href = "{{ route('signin.page') }}";
             return;
@@ -139,6 +147,8 @@
             email: localStorage.getItem('user_email'),
             phone: localStorage.getItem('user_phone'),
             address: localStorage.getItem('user_address'),
+            age: localStorage.getItem('user_age'),
+            gender: localStorage.getItem('user_gender'),
             joined: localStorage.getItem('user_joined')
         };
 
@@ -146,11 +156,13 @@
             document.getElementById('sidebar-name').innerText = cachedData.name;
             document.getElementById('display-name').innerText = cachedData.name;
         }
-        
+
         if (cachedData.email) document.getElementById('display-email').innerText = cachedData.email;
         if (cachedData.phone) document.getElementById('display-phone').innerText = cachedData.phone;
         if (cachedData.address) document.getElementById('display-address').innerText = cachedData.address;
-        
+        if (cachedData.age) document.getElementById('display-age').innerText = cachedData.age;
+        if (cachedData.gender) document.getElementById('display-gender').innerText = cachedData.gender;
+
         if (cachedData.joined) {
             const memberSince = document.getElementById('member-since');
             memberSince.innerText = "Member since " + cachedData.joined;
