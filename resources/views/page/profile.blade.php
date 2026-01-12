@@ -56,6 +56,78 @@
         color: #333;
     }
 
+    .custom-dialog {
+        border: none;
+        border-radius: 20px;
+        padding: 30px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        /*background: #fff;*/
+    }
+
+    .custom-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(1px);
+    }
+
+    .dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .btn-confirm,
+    .btn-cancel {
+        flex: 1;
+        height: 45px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border: none;
+        display: flex;
+        transition: all 0.2s ease;
+        align-items: center;
+        justify-content: center;
+        text-transform: uppercase;
+        cursor: pointer;
+    }
+
+    .btn-confirm {
+        background: #ff6b6b;
+        color: white;
+        /*transition: 0.2s;*/
+    }
+
+    .btn-confirm:hover {
+        background: #ee5253;
+    }
+
+    .btn-cancel {
+        background: #f0f1f1ff;
+        color: #6c757d;
+        /*transition: 0.2s;*/
+    }
+
+    .btn-cancel:hover {
+        background: #e2e6ea;
+    }
+
+    .btn-save-profile {
+        background-color: #ff6b6b;
+        color: white;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save-profile:hover {
+        background-color: #2d3436;
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
     @media (max-width: 991px) {
         .main-profile-card {
             flex-direction: column;
@@ -114,6 +186,9 @@
                 </div>
             </div>
 
+            <div class="mt-4 text-end">
+                <button type="button" onclick="openDeleteModal('{{ Auth::user()->userid }}')" class="btn btn-save-profile rounded-pill px-4 py-2 fw-bold shadow-sm">Delete Account</button>
+            </div>
 
             <!-- WARNING BUTTON
             <div class="mt-4">
@@ -132,6 +207,26 @@
         </div>
     </div>
 </div>
+
+<form id="delete-account-form"
+    action="{{ route('profile.delete', Auth::user()->userid) }}"
+    method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+<dialog id="deleteUserModal" class="custom-dialog">
+    <div class="dialog-content">
+        <h3 class="fw-bold mb-3">Confirm Deletion</h3>
+        <p class="text-muted">Are you sure you want to remove your account?<br>
+            <span class="text-danger small">This action is permanent and cannot be undone.</span>
+        </p>
+        <div class="dialog-actions">
+            <button type="button" onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
+            <button type="button" id="btnConfirmDeleteUser" class="btn-confirm">Delete Permanently</button>
+        </div>
+    </div>
+</dialog>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -159,15 +254,53 @@
 
         if (cachedData.email) document.getElementById('display-email').innerText = cachedData.email;
         if (cachedData.phone) document.getElementById('display-phone').innerText = cachedData.phone;
-        if (cachedData.address) document.getElementById('display-address').innerText = cachedData.address;
+        //if (cachedData.address) document.getElementById('display-address').innerText = cachedData.address;
         if (cachedData.age) document.getElementById('display-age').innerText = cachedData.age;
-        if (cachedData.gender) document.getElementById('display-gender').innerText = cachedData.gender;
+        //if (cachedData.gender) document.getElementById('display-gender').innerText = cachedData.gender;
+        //if (cachedData.gender) {
+        //const capitalized = cachedData.gender.charAt(0).toUpperCase() + cachedData.gender.slice(1);
+        //document.getElementById('display-gender').innerText = capitalized;
+        //}
 
         if (cachedData.joined) {
             const memberSince = document.getElementById('member-since');
             memberSince.innerText = "Member since " + cachedData.joined;
             memberSince.classList.remove('d-none');
         }
+
+        const deleteModal = document.getElementById('deleteUserModal');
+        let userToDelete = null;
+
+        function openDeleteModal(userId) {
+            userToDelete = userId;
+
+            if (deleteModal) {
+                deleteModal.showModal();
+            }
+        }
+
+        function closeDeleteModal() {
+            if (deleteModal) {
+                deleteModal.close();
+            }
+            userToDelete = null;
+        }
+
+        document.getElementById('btnConfirmDeleteUser').addEventListener('click', function() {
+            if (userToDelete) {
+                const form = document.getElementById(`delete-form-${userToDelete}`);
+                const confirmBtn = this;
+
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+                form.submit();
+            }
+        });
+
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) closeDeleteModal();
+        });
     });
 </script>
 

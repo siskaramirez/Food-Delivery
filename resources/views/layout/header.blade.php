@@ -161,64 +161,6 @@
     .dropdown-toggle::after {
         display: none;
     }
-
-    .custom-dialog {
-        border: none;
-        border-radius: 20px;
-        padding: 30px;
-        width: 90%;
-        max-width: 400px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-        /*background: #fff;*/
-    }
-
-    .custom-dialog::backdrop {
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(1px);
-    }
-
-    .dialog-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        margin-top: 20px;
-    }
-
-    .btn-confirm,
-    .btn-cancel {
-        flex: 1;
-        height: 45px;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        border: none;
-        display: flex;
-        transition: all 0.2s ease;
-        align-items: center;
-        justify-content: center;
-        text-transform: uppercase;
-        cursor: pointer;
-    }
-
-    .btn-confirm {
-        background: #ff6b6b;
-        color: white;
-        /*transition: 0.2s;*/
-    }
-
-    .btn-confirm:hover {
-        background: #ee5253;
-    }
-
-    .btn-cancel {
-        background: #f0f1f1ff;
-        color: #6c757d;
-        /*transition: 0.2s;*/
-    }
-
-    .btn-cancel:hover {
-        background: #e2e6ea;
-    }
 </style>
 
 <div class="container">

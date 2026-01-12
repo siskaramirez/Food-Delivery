@@ -57,7 +57,13 @@ class PageController extends Controller
     {
         $user = $this->getUsers();
 
-        return view('page.profile', compact('user'));
+        $logs = DB::table('UserChangeHistoryLog')
+              ->where('UserID', Auth::id())
+              ->orderBy('LastModified', 'DESC')
+              ->limit(10)
+              ->get();
+
+        return view('page.profile', compact('user', 'logs'));
     }
 
     public function edit()
@@ -84,14 +90,27 @@ class PageController extends Controller
 
         $request->validate($rules, $messages);
 
-        User::where('username', Auth::user()->username)->update([
-            'uname'     => $request->name,
-            'address'   => $request->address,
-            'contactno' => $request->phone,
-            'gender'    => $request->gender,
-        ]);
+        try {
+            DB::table('users')
+                ->where('userid', Auth::user()->userid) 
+                ->update([
+                    'uname'     => $request->name,
+                    'address'   => $request->address,
+                    'contactno' => $request->phone,
+                    'gender'    => ($request->gender == 'male') ? 'M' : 'F',
+                ]);
 
-        return redirect()->route('profile.page')->with('success', 'Profile updated!');
+            // 3. Success Redirect
+            return redirect()
+                ->route('profile.page')
+                ->with('success', 'Profile updated successfully!');
+
+        } catch (\Exception $e) {
+            // 4. Error Handling
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to update profile. Please try again.');
+        }
     }
 
     public function orders()
@@ -398,7 +417,7 @@ class PageController extends Controller
                 'phone'       => $user->contactno,
                 'address'     => $user->address,
                 'age'         => $user->age,
-                'gender'      => $genderMap[$user->gender],
+                'gender'      => $genderMap[strtoupper($user->gender)],
                 'joined'      => date('F Y', strtotime($user->dateregistered)),
                 'profile_pix' => asset('images/profile.jpg')
             ];
@@ -409,6 +428,8 @@ class PageController extends Controller
             'email' => 'No email address set yet',
             'phone' => 'No phone number set yet',
             'address' => 'No address set yet',
+            'age'    => 'No age set yet',
+            'gender'  => 'No gender set yet',
             'joined' => date('F Y'),
             'profile_pix' => asset('images/profile.jpg')
         ];

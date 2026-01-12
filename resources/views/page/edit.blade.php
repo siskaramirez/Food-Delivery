@@ -126,6 +126,7 @@
 
             <form action="{{ route('profile.update') }}" method="POST" onsubmit="syncToLocalStorage()">
                 @csrf
+                @method('PUT')
                 <div class="row g-4">
                     <div class="col-md-6">
                         <label class="info-label">Full Name</label>
@@ -160,8 +161,8 @@
                     <div class="col-md-6">
                         <label class="info-label">Gender</label>
                         <select name="gender" id="input-gender" class="edit-input" required>
-                            <option value="Male" {{ $user['gender'] == 'Male' ? 'selected' : '' }}>Male</option>
-                            <option value="Female" {{ $user['gender'] == 'Female' ? 'selected' : '' }}>Female</option>
+                            <option value="male" {{ ($user['gender'] == 'Male' || $user['gender'] == 'M') ? 'selected' : '' }}>Male</option>
+                            <option value="female" {{ ($user['gender'] == 'Female' || $user['gender'] == 'F') ? 'selected' : '' }}>Female</option>
                         </select>
                         @error('gender') <small class="text-danger">{{ $message }}</small> @enderror
                     </div>
@@ -180,12 +181,14 @@
         const name = document.getElementById('input-name').value;
         const phone = document.getElementById('input-phone').value;
         const address = document.getElementById('input-address').value;
+
         const gender = document.getElementById('input-gender').value;
+        const genderText = genderSelect.options[gender.selectedIndex].text;
 
         localStorage.setItem('user_name', name);
         localStorage.setItem('user_phone', phone);
         localStorage.setItem('user_address', address);
-        localStorage.setItem('user_gender', gender);
+        localStorage.setItem('user_gender', genderText);
 
         const sidebarName = document.getElementById('sidebar-name');
         if (sidebarName) sidebarName.innerText = name;

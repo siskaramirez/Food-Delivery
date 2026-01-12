@@ -29,7 +29,7 @@ Route::get('/cart', [PageController::class, 'cart'])->name('cart.page');
 Route::get('/cart/checkout', [PageController::class, 'checkout'])->name('cart.checkout');
 Route::get('/profile', [PageController::class, 'profile'])->name('profile.page');
 Route::get('/profile/edit', [PageController::class, 'edit'])->name('profile.edit');
-Route::post('/profile/edit', [PageController::class, 'update'])->name('profile.update');
+Route::put('/profile/edit', [PageController::class, 'update'])->name('profile.update');
 Route::get('/payment', [PageController::class, 'payment'])->name('payment.page');
 Route::delete('/profile/delete/{id}', [PageController::class, 'deleteUser'])->name('profile.delete');
 
