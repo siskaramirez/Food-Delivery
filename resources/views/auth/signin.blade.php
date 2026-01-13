@@ -193,4 +193,31 @@
     </div>
 </div>
 
+@if(session('success'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const email = "{{ session('user_email') }}" || "{{ old('email') }}";
+        const name = "{{ session('user_name') }}" || ("{{ old('fname') }}" ? "{{ old('fname') }} {{ old('lname') }}" : "");
+        const phone = "{{ session('user_phone') }}" || "{{ old('phone') }}";
+        const address = "{{ session('user_address') }}" || "{{ old('address') }}";
+        /* const age = "{{ session('user_age') }}"; */
+        const joined = "{{ session('joined_date') }}";
+
+        if (email) {
+            localStorage.setItem('user_email', email);
+            localStorage.setItem('user_name', name);
+            localStorage.setItem('user_phone', phone);
+            localStorage.setItem('user_address', address);
+            /* localStorage.setItem('user_age', age); */
+            localStorage.setItem('user_joined', joined);
+            localStorage.setItem('eatsway_authenticated', 'true');
+        }
+
+        if (typeof updateNavbar === 'function') {
+            updateNavbar();
+        }
+    });
+</script>
+@endif
+
 @endSection

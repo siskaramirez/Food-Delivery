@@ -52,15 +52,12 @@ class AuthController extends Controller
             'address'   => $request->address,
         ]);
 
+        /*
         Auth::login($user);
         $request->session()->regenerate();
-        session(['user_role' => 'customer']);
+        session(['user_role' => 'customer']); */
 
-        return redirect()->route('home.page')
-            ->with('success', 'Account created!')
-            ->with('user_email', $user->username)
-            ->with('user_name', $user->uname)
-            ->with('joined_date', date('F Y'));
+        return redirect()->route('signin.page')->with('success', 'Account created!')->with('user_email', $user->username);
     }
 
     public function showSignin()

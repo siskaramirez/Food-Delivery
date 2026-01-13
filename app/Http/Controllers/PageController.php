@@ -55,6 +55,10 @@ class PageController extends Controller
 
     public function profile()
     {
+        if (!Auth::check()) {
+            return redirect()->route('signin.page');
+        }
+
         $user = $this->getUsers();
 
         $logs = DB::table('UserChangeHistoryLog')
@@ -68,6 +72,10 @@ class PageController extends Controller
 
     public function edit()
     {
+        if (!Auth::check()) {
+            return redirect()->route('signin.page');
+        }
+
         $user = $this->getUsers();
 
         return view('page.edit', compact('user'));
@@ -393,14 +401,30 @@ class PageController extends Controller
         try {
             DB::transaction(function () use ($id) {
                 $orderIds = DB::table('orders')->where('userid', $id)->pluck('orderid');
+                
+                if ($orderIds->isNotEmpty()) {
+                    $itemsToRestock = DB::table('order_items')
+                        ->join('delivery', 'order_items.orderid', '=', 'delivery.orderid')
+                        ->whereIn('order_items.orderid', $orderIds)
+                        ->where('delivery.deliverystatus', '!=', 'Delivered')
+                        ->select('order_items.foodcode', 'order_items.quantity')
+                        ->get();
 
-                DB::table('order_items')->whereIn('orderid', $orderIds)->delete();
-                DB::table('payments')->whereIn('orderid', $orderIds)->delete();
-                DB::table('delivery')->where('orderid', $id)->delete();
-                DB::table('deliveryhistorylog')->where('orderid', $id)->delete();
-                DB::table('orderhistorylog')->where('orderid', $id)->delete();
+                    foreach ($itemsToRestock as $item) {
+                        DB::table('food_items')
+                            ->where('foodcode', $item->foodcode)
+                            ->increment('quantity', $item->quantity);
+                    }
 
-                DB::table('orders')->where('userid', $id)->delete();
+                    DB::table('delivery')->whereIn('orderid', $orderIds)->delete();
+                    DB::table('order_items')->whereIn('orderid', $orderIds)->delete();
+                    DB::table('payments')->whereIn('orderid', $orderIds)->delete();
+                    DB::table('deliveryhistorylog')->whereIn('orderid', $orderIds)->delete();
+                    DB::table('orderhistorylog')->whereIn('orderid', $orderIds)->delete();
+
+                    DB::table('orders')->where('userid', $id)->delete();
+                }
+
                 DB::table('userchangehistorylog')->where('userid', $id)->delete();
                 DB::table('users')->where('userid', $id)->delete();
 

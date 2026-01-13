@@ -144,6 +144,21 @@
         background: #fff3e0;
         color: #ef6c00;
     }
+
+    .status-badge.assigned {
+        background-color: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .status-badge.picked-up {
+        background-color: #e1f5fe;
+        color: #0288d1;
+    }
+
+    .status-badge.en-route {
+        background-color: #e0f2f1;
+        color: #00796b;
+    }
 </style>
 
 <div class="admin-main-container mt-5">
@@ -191,7 +206,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach($user->orders as $order)
-                                    <tr>
+                                    <tr id="admin-order-row-{{ $order->orderid }}">
                                         <td class="fw-bold">#{{ $order->orderid }}</td>
                                         <td>{{ date('M d, Y', strtotime($order->orderdate)) }}</td>
                                         <td>
@@ -214,7 +229,7 @@
                                                 Pick-up
                                             </span>
                                             @else
-                                            <span class="status-badge {{ strtolower($order->deliverystatus) }}">
+                                            <span class="status-badge {{ Str::slug($order->deliverystatus) }}">
                                                 {{ $order->deliverystatus }}
                                             </span>
                                             @endif
@@ -237,5 +252,18 @@
         @endforeach
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const hiddenAdminOrders = JSON.parse(localStorage.getItem('admin_hidden_orders') || '[]');
+        
+        hiddenAdminOrders.forEach(id => {
+            const row = document.getElementById(`admin-order-row-${id}`);
+            if (row) {
+                row.style.display = 'none';
+            }
+        });
+    });
+</script>
 
 @endSection

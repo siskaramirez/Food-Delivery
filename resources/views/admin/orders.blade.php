@@ -325,14 +325,21 @@
 
                         <td>
                             @if($lastOrderId !== $row->orderid)
-                            @if($row->order_status_id != 3 && $row->order_status_id != 2 && $row->deliverystatus != 'Delivered')
+                            @php
+                            $isCancelled = ($row->order_status_id == 3);
+                            $isPickUpFinished = ($row->deliveryneeded == 0 && $row->order_status_id == 2);
+                            $isDeliveryFinished = ($row->deliveryneeded == 1 && $row->deliverystatus == 'Delivered');
+                            $showRemove = ($isCancelled || $isPickUpFinished || $isDeliveryFinished);
+                            @endphp
+
+                            @if(!$showRemove)
                             <button type="button" class="edit-btn"
                                 data-bs-toggle="modal"
                                 data-bs-target="#editOrder-{{ $row->orderid }}">EDIT
                             </button>
                             @include('admin.edit-order', ['order' => $row])
 
-                            @elseif($row->order_status_id == 2 || $row->deliverystatus == 'Delivered' || $row->order_status_id == 3)
+                            @else
                             <button type="button" class="remove-btn"
                                 onclick="openAdminDeleteModal('{{ $row->orderid }}')">REMOVE
                             </button>
@@ -385,18 +392,20 @@
             if (!orderToHide) return;
 
             let adminList = JSON.parse(localStorage.getItem('admin_hidden_orders') || '[]');
-            
+
             if (!adminList.includes(orderToHide)) {
                 adminList.push(orderToHide);
             }
-            
+
             localStorage.setItem('admin_hidden_orders', JSON.stringify(adminList));
 
             const rowToHide = document.getElementById(`admin-order-row-${orderToHide}`);
             if (rowToHide) {
                 rowToHide.style.transition = '0.3s';
                 rowToHide.style.opacity = '0';
-                setTimeout(() => { rowToHide.style.display = 'none'; }, 300);
+                setTimeout(() => {
+                    rowToHide.style.display = 'none';
+                }, 300);
             }
             modal.close();
         });
@@ -405,7 +414,7 @@
             const dimensions = modal.getBoundingClientRect();
             if (e.clientX < dimensions.left ||
                 e.clientX > dimensions.right ||
-                e.clientY < dimensions.top || 
+                e.clientY < dimensions.top ||
                 e.clientY > dimensions.bottom) {
                 modal.close();
             }

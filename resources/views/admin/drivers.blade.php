@@ -83,7 +83,7 @@
                                 @else
                                 <span class="status-badge status-unavailable">Unavailable</span>
                                 @endif
-
+                                
                                 <div class="mt-1">
                                     <small class="text-muted">
                                         Active: {{ $driver->active_orders_count }} / 2

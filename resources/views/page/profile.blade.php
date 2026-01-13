@@ -235,6 +235,10 @@
             return;
         }
 
+        localStorage.setItem('user_name', "{{ $user['name'] }}");
+        localStorage.setItem('user_phone', "{{ $user['phone'] }}");
+        localStorage.setItem('user_address', "{{ $user['address'] }}");
+
         const cachedData = {
             name: localStorage.getItem('user_name'),
             email: localStorage.getItem('user_email'),
@@ -269,7 +273,7 @@
         const deleteModal = document.getElementById('deleteUserModal');
         const btnConfirmDelete = document.getElementById('btnConfirmDeleteUser');
         let userToDelete = null;
-        
+
         window.openDeleteModal = function(userId) {
             userToDelete = userId;
             if (deleteModal) {
@@ -286,8 +290,8 @@
 
         if (btnConfirmDelete) {
             btnConfirmDelete.addEventListener('click', function() {
-                const form = document.getElementById('delete-account-form'); 
-                
+                const form = document.getElementById('delete-account-form');
+
                 if (form) {
                     btnConfirmDelete.disabled = true;
                     btnConfirmDelete.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
