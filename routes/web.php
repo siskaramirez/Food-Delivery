@@ -24,7 +24,7 @@ Route::get('/menu/{id}', [PageController::class, 'show'])->name('menu.detail');
 Route::get('/orders', [PageController::class, 'orders'])->name('orders.page');
 Route::post('/order/store', [PageController::class, 'storeOrder'])->name('order.store');
 Route::post('/order/cancel/{id}', [PageController::class, 'cancelOrder'])->name('order.cancel');
-Route::post('/order/delete/{id}', [PageController::class, 'deleteOrder'])->name('order.delete');
+//Route::post('/order/delete/{id}', [PageController::class, 'deleteOrder'])->name('order.delete');
 Route::get('/orders/history', [PageController::class, 'history'])->name('orders.history');
 Route::get('/cart', [PageController::class, 'cart'])->name('cart.page');
 Route::get('/cart/checkout', [PageController::class, 'checkout'])->name('cart.checkout');

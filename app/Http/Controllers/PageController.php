@@ -160,6 +160,7 @@ class PageController extends Controller
         return view('page.orders', compact('user', 'orders'));
     }
 
+    /*
     public function deleteOrder($id)
     {
         try {
@@ -182,7 +183,7 @@ class PageController extends Controller
             DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
         }
-    }
+    }*/
 
     public function cancelOrder($id)
     {

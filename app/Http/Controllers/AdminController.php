@@ -186,7 +186,11 @@ class AdminController extends Controller
                 'drivername',
                 'contactno',
                 'plateno',
-                'isAvailable'
+                'isAvailable',
+                DB::raw('(SELECT COUNT(*) FROM delivery d 
+                  JOIN orders o ON d.orderid = o.orderid 
+                  WHERE d.license = driver.license 
+                  AND o.order_status_id = 1) as active_orders_count')
             )
             ->when($search, function ($query, $search) {
                 return $query->where('driver.drivername', 'like', "%{$search}%")

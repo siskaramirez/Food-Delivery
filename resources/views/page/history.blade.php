@@ -230,7 +230,7 @@
             </div>
             @else
             @foreach($orders as $order)
-            <div class="order-history-card">
+            <div id="order-wrapper-{{ $order->orderid }}" class="order-history-card">
                 <div class="order-main-info">
                     <span class="order-number-label">Order #{{ $order->orderid }}</span>
 
@@ -327,10 +327,17 @@
         const btnCancel = document.getElementById('btnCancel');
         const btnConfirmDelete = document.getElementById('btnConfirmDelete');
         const modalTextDisplay = document.getElementById('modal-order-id');
-        let orderToCancel = null;
+        
+        let orderToHide = null; 
+
+        const hiddenOrders = JSON.parse(localStorage.getItem('hidden_orders') || '[]');
+        hiddenOrders.forEach(id => {
+            const el = document.getElementById(`order-wrapper-${id}`);
+            if (el) el.style.display = 'none';
+        });
 
         window.confirmCancel = function(orderId) {
-            orderToCancel = orderId;
+            orderToHide = orderId;
             if (modalTextDisplay) {
                 modalTextDisplay.innerText = orderId;
             }
@@ -353,38 +360,28 @@
             }
         });
 
-        btnConfirmDelete.addEventListener('click', async function() {
-            if (!orderToCancel) return;
+        btnConfirmDelete.addEventListener('click', function() {
+            if (!orderToHide) return;
 
-            btnConfirmDelete.disabled = true;
-            btnConfirmDelete.innerText = "Deleting...";
-
-            try {
-                const response = await fetch(`/order/delete/${orderToCancel}`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    modal.close();
-                    window.location.reload();
-                } else {
-                    alert("Error: " + result.message);
-                    btnConfirmDelete.disabled = false;
-                    btnConfirmDelete.innerText = "Delete";
-                }
-            } catch (error) {
-                console.error("Cancellation failed:", error);
-                alert("An error occurred. Please try again.");
-                btnConfirmDelete.disabled = false;
-                btnConfirmDelete.innerText = "Delete";
+            let currentHidden = JSON.parse(localStorage.getItem('hidden_orders') || '[]');
+            
+            if (!currentHidden.includes(orderToHide)) {
+                currentHidden.push(orderToHide);
             }
+
+            localStorage.setItem('hidden_orders', JSON.stringify(currentHidden));
+
+            const elementToHide = document.getElementById(`order-wrapper-${orderToHide}`);
+            if (elementToHide) {
+                elementToHide.style.transition = 'opacity 0.3s ease';
+                elementToHide.style.opacity = '0';
+                setTimeout(() => {
+                    elementToHide.style.display = 'none';
+                }, 300);
+            }
+
+            modal.close();
+            console.log(`Order ${orderToHide} hidden locally.`);
         });
     });
 </script>
