@@ -105,7 +105,7 @@
         display: block;
     }
 
-    .btn-delete-order {
+    .btn-cancel-order {
         background-color: transparent;
         color: #ff6b6b;
         border: 1px solid #ff6b6b;
@@ -117,7 +117,7 @@
         width: 100%;
     }
 
-    .btn-delete-order:hover {
+    .btn-cancel-order:hover {
         background-color: #ff6b6b;
         color: white;
     }
@@ -211,18 +211,6 @@
     }
 </style>
 
-<!-- WARNING BUTTON -->
-<dialog id="deleteOrderModal" class="custom-dialog">
-    <div class="dialog-content">
-        <h3 class="fw-bold">Confirm Deletion</h3>
-        <p class="text-muted">Are you sure you want to permanently cancel order #<span id="modal-order-id"></span>?</p>
-        <div class="dialog-actions">
-            <button type="button" id="btnCancel" class="btn-cancel">Cancel</button>
-            <button type="button" id="btnConfirmDelete" class="btn-confirm">Delete</button>
-        </div>
-    </div>
-</dialog>
-
 <!-- MAIN -->
 <div class="orders-wrapper">
     <div class="orders-main-container">
@@ -292,7 +280,7 @@
                     @endif
 
                     @if($order->order_status_id == 1)
-                    <button onclick="confirmCancel('{{ $order->orderid }}')" class="btn-delete-order mt-2">
+                    <button onclick="confirmCancel('{{ $order->orderid }}')" class="btn-cancel-order mt-2">
                         Cancel Order
                     </button>
                     @endif
@@ -304,11 +292,23 @@
     </div>
 </div>
 
+<!-- WARNING BUTTON -->
+<dialog id="cancelOrderModal" class="custom-dialog">
+    <div class="dialog-content">
+        <h3 class="fw-bold">Confirm Cancellation</h3>
+        <p class="text-muted">Are you sure you want to cancel order #<span id="modal-order-id"></span>?</p>
+        <div class="dialog-actions">
+            <button type="button" id="btnCancel" class="btn-cancel">Keep Order</button>
+            <button type="button" id="btnConfirmCancel" class="btn-confirm">Cancel Order</button>
+        </div>
+    </div>
+</dialog>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('deleteOrderModal');
+        const modal = document.getElementById('cancelOrderModal');
         const btnCancel = document.getElementById('btnCancel');
-        const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+        const btnConfirmCancel = document.getElementById('btnConfirmCancel');
         const modalTextDisplay = document.getElementById('modal-order-id');
         let orderToCancel = null;
 
@@ -320,13 +320,27 @@
             modal.showModal();
         };
 
-        btnCancel.addEventListener('click', () => modal.close());
+        if (btnCancel) {
+            btnCancel.addEventListener('click', () => modal.close());
+        }
 
-        btnConfirmDelete.addEventListener('click', async function() {
+        modal.addEventListener('click', (e) => {
+            const dialogDimensions = modal.getBoundingClientRect();
+            if (
+                e.clientX < dialogDimensions.left ||
+                e.clientX > dialogDimensions.right ||
+                e.clientY < dialogDimensions.top ||
+                e.clientY > dialogDimensions.bottom
+            ) {
+                modal.close();
+            }
+        });
+
+        btnConfirmCancel.addEventListener('click', async function() {
             if (!orderToCancel) return;
 
-            btnConfirmDelete.disabled = true;
-            btnConfirmDelete.innerText = "Deleting...";
+            btnConfirmCancel.disabled = true;
+            btnConfirmCancel.innerText = "Cancelling...";
 
             try {
                 const response = await fetch(`/order/cancel/${orderToCancel}`, {
@@ -345,14 +359,14 @@
                     window.location.reload();
                 } else {
                     alert("Error: " + result.message);
-                    btnConfirmDelete.disabled = false;
-                    btnConfirmDelete.innerText = "Delete";
+                    btnConfirmCancel.disabled = false;
+                    btnConfirmCancel.innerText = "Cancel Order";
                 }
             } catch (error) {
                 console.error("Cancellation failed:", error);
                 alert("An error occurred. Please try again.");
-                btnConfirmDelete.disabled = false;
-                btnConfirmDelete.innerText = "Delete";
+                btnConfirmCancel.disabled = false;
+                btnConfirmCancel.innerText = "Cancel Order";
             }
         });
     });

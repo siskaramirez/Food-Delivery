@@ -211,22 +211,9 @@
     }
 </style>
 
-<!-- WARNING BUTTON -->
-<dialog id="deleteOrderModal" class="custom-dialog">
-    <div class="dialog-content">
-        <h3 class="fw-bold">Confirm Deletion</h3>
-        <p class="text-muted">Are you sure you want to remove order #<span id="modal-order-id"></span>?</p>
-        <div class="dialog-actions">
-            <button type="button" id="btnCancel" class="btn-cancel">Cancel</button>
-            <button type="button" id="btnConfirmDelete" class="btn-confirm">Delete</button>
-        </div>
-    </div>
-</dialog>
-
 <!-- MAIN -->
 <div class="orders-wrapper">
     <div class="orders-main-container">
-
         <div class="page-header-flex">
             <h1 class="title-text">Purchase History</h1>
             <a href="{{ route('orders.page') }}"
@@ -251,15 +238,25 @@
                         @if($order->deliveryneeded == 0)
                         <div class="info-item">
                             <span class="info-label">Service Type</span>
-                            <span class="info-value">Pick-up</span>
+                            <span class="info-value">Pick-up
+                                @if($order->order_status_id == 3)
+                                <span class="info-value">Pick-up Cancelled</span>
+                                @endif
+                            </span>
                         </div>
                         @else
                         <div class="info-item">
                             <span class="info-label">Rider</span>
-                            <span class="info-value">{{ $order->drivername }}</span>
-                            @if($order->contactno)
-                            <span style="font-size: 0.75rem; color: #888;">{{ $order->contactno }}</span>
-                            @endif
+                            <span class="info-value">
+                                @if($order->order_status_id == 3)
+                                <span class="info-value">Delivery Cancelled</span>
+                                @else
+                                {{ $order->drivername }}</span>
+                                    @if($order->contactno)
+                                    <span style="font-size: 0.75rem; color: #888;">{{ $order->contactno }}</span>
+                                    @endif
+                                @endif
+                            </span>
                         </div>
                         @endif
                         <div class="info-item">
@@ -268,7 +265,13 @@
                         </div>
                         <div class="info-item">
                             <span class="info-label">Payment Method</span>
-                            <span class="info-value">{{ $order->paymentmethod }}</span>
+                            <span class="info-value">
+                                @if(in_array($order->paymentstatus, ['Refunded', 'Cancelled']))
+                                <span class="info-value">{{ $order->paymentstatus }}</span>
+                                @else
+                                {{ $order->paymentmethod }}
+                                @endif
+                            </span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Total Amount</span>
@@ -296,7 +299,7 @@
                     </span>
 
                     <button onclick="confirmCancel('{{ $order->orderid }}')" class="btn-delete-order mt-2">
-                        Delete Order
+                        Delete Record
                     </button>
                 </div>
             </div>
@@ -304,59 +307,86 @@
             @endif
         </div>
     </div>
+</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('deleteOrderModal');
-            const btnCancel = document.getElementById('btnCancel');
-            const btnConfirmDelete = document.getElementById('btnConfirmDelete');
-            const modalTextDisplay = document.getElementById('modal-order-id');
-            let orderToCancel = null;
+<!-- WARNING BUTTON -->
+<dialog id="deleteOrderModal" class="custom-dialog">
+    <div class="dialog-content">
+        <h3 class="fw-bold">Confirm Deletion</h3>
+        <p class="text-muted">Are you sure you want to remove order #<span id="modal-order-id"></span>?</p>
+        <div class="dialog-actions">
+            <button type="button" id="btnCancel" class="btn-cancel">Cancel</button>
+            <button type="button" id="btnConfirmDelete" class="btn-confirm">Delete</button>
+        </div>
+    </div>
+</dialog>
 
-            window.confirmCancel = function(orderId) {
-                orderToCancel = orderId;
-                if (modalTextDisplay) {
-                    modalTextDisplay.innerText = orderId;
-                }
-                modal.showModal();
-            };
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('deleteOrderModal');
+        const btnCancel = document.getElementById('btnCancel');
+        const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+        const modalTextDisplay = document.getElementById('modal-order-id');
+        let orderToCancel = null;
 
+        window.confirmCancel = function(orderId) {
+            orderToCancel = orderId;
+            if (modalTextDisplay) {
+                modalTextDisplay.innerText = orderId;
+            }
+            modal.showModal();
+        };
+
+        if (btnCancel) {
             btnCancel.addEventListener('click', () => modal.close());
+        }
 
-            btnConfirmDelete.addEventListener('click', async function() {
-                if (!orderToCancel) return;
+        modal.addEventListener('click', (e) => {
+            const dialogDimensions = modal.getBoundingClientRect();
+            if (
+                e.clientX < dialogDimensions.left ||
+                e.clientX > dialogDimensions.right ||
+                e.clientY < dialogDimensions.top ||
+                e.clientY > dialogDimensions.bottom
+            ) {
+                modal.close();
+            }
+        });
 
-                btnConfirmDelete.disabled = true;
-                btnConfirmDelete.innerText = "Deleting...";
+        btnConfirmDelete.addEventListener('click', async function() {
+            if (!orderToCancel) return;
 
-                try {
-                    const response = await fetch(`/order/cancel/${orderToCancel}`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        }
-                    });
+            btnConfirmDelete.disabled = true;
+            btnConfirmDelete.innerText = "Deleting...";
 
-                    const result = await response.json();
-
-                    if (result.success) {
-                        modal.close();
-                        window.location.reload();
-                    } else {
-                        alert("Error: " + result.message);
-                        btnConfirmDelete.disabled = false;
-                        btnConfirmDelete.innerText = "Delete";
+            try {
+                const response = await fetch(`/order/delete/${orderToCancel}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     }
-                } catch (error) {
-                    console.error("Cancellation failed:", error);
-                    alert("An error occurred. Please try again.");
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    modal.close();
+                    window.location.reload();
+                } else {
+                    alert("Error: " + result.message);
                     btnConfirmDelete.disabled = false;
                     btnConfirmDelete.innerText = "Delete";
                 }
-            });
+            } catch (error) {
+                console.error("Cancellation failed:", error);
+                alert("An error occurred. Please try again.");
+                btnConfirmDelete.disabled = false;
+                btnConfirmDelete.innerText = "Delete";
+            }
         });
-    </script>
+    });
+</script>
 
-    @endSection
+@endSection

@@ -256,16 +256,8 @@
                                 <hr class="dropdown-divider">
                             </li>
                             <li><a class="dropdown-item text-danger" href="{{ route('logout.submit') }}" onclick="handleLogout()">Logout</a></li>
-                            <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="openDeleteModal('{{ Auth::user()->userid }}', '{{ Auth::user()->name }}')">Delete Account</a></li>
                         </ul>
                     </div>
-
-                    <form id="delete-form-{{ Auth::user()->userid }}"
-                        action="{{ route('profile.delete', Auth::user()->userid) }}"
-                        method="POST" style="display: none;">
-                        @csrf
-                        @method('DELETE')
-                    </form>
 
                     @else
                     <a href="{{ route('signin.page') }}" id="nav-signup-btn" class="btn btn-signup me-3">Sign In</a>
@@ -277,52 +269,7 @@
     </div>
 </div>
 
-<dialog id="deleteUserModal" class="custom-dialog">
-    <div class="dialog-content">
-        <h3 class="fw-bold mb-3">Confirm Deletion</h3>
-        <p class="text-muted">Are you sure you want to remove your account?<br>This will permanently remove all the records.</p>
-        <div class="dialog-actions">
-            <button type="button" onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
-            <button type="button" id="btnConfirmDeleteUser" class="btn-confirm">Delete</button>
-        </div>
-    </div>
-</dialog>
-
 <script>
-    const deleteModal = document.getElementById('deleteUserModal');
-    let userToDelete = null;
-
-    function openDeleteModal(userId) {
-        userToDelete = userId;
-        
-        if (deleteModal) {
-            deleteModal.showModal();
-        }
-    }
-
-    function closeDeleteModal() {
-        if (deleteModal) {
-            deleteModal.close();
-        }
-        userToDelete = null;
-    }
-
-    document.getElementById('btnConfirmDeleteUser').addEventListener('click', function() {
-        if (userToDelete) {
-            const form = document.getElementById(`delete-form-${userToDelete}`);
-            const confirmBtn = this;
-
-            confirmBtn.disabled = true;
-            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-            form.submit();
-        }
-    });
-
-    deleteModal.addEventListener('click', (e) => {
-        if (e.target === deleteModal) closeDeleteModal();
-    });
-
     function updateNavbar() {
         const isAuth = localStorage.getItem('eatsway_authenticated');
         const userEmail = localStorage.getItem('user_email');

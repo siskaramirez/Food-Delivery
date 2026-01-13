@@ -87,6 +87,11 @@
         color: #455a64;
     }
 
+    .pay-badge.cancelled {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
     .order-badge.pending {
         background-color: #fff3e0;
         color: #ef6c00;
@@ -125,6 +130,11 @@
     .delivery-badge.delivered {
         background-color: #e8f5e9;
         color: #2e7d32;
+    }
+
+    .delivery-badge.cancelled {
+        background-color: #ffebee;
+        color: #c62828;
     }
 
     .edit-btn {
@@ -220,7 +230,7 @@
                                 {{ $row->deliverystatus ?? 'Pending' }}
                             </span>
                             @else
-                            <span class="text-muted small">(Pick-up)</span>
+                            <span class="service-tag pickup">Pick-up</span>
                             @endif
                             @endif
                         </td>
@@ -236,7 +246,7 @@
                         </td>
 
                         <td>
-                            @if($lastOrderId !== $row->orderid)
+                            @if($lastOrderId !== $row->orderid && $row->order_status_id != 3)
                             <button type="button" class="edit-btn"
                                 data-bs-toggle="modal"
                                 data-bs-target="#editOrder-{{ $row->orderid }}">EDIT

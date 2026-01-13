@@ -27,8 +27,9 @@ class AdminController extends Controller
             $user->orders = DB::table('orders')
                 ->join('order_status', 'orders.order_status_id', '=', 'order_status.order_status_id')
                 ->join('payments', 'orders.orderid', '=', 'payments.orderid')
+                ->leftJoin('delivery', 'orders.orderid', '=', 'delivery.orderid')
                 ->where('orders.userid', $user->userid)
-                ->select('orders.*', 'order_status.status_name', 'payments.paymentstatus')
+                ->select('orders.*', 'orders.deliveryneeded', 'order_status.status_name', 'payments.paymentstatus', 'delivery.deliverystatus')
                 ->orderBy('orders.orderdate', 'desc')
                 ->get();
         }

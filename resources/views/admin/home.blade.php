@@ -100,9 +100,14 @@
         padding: 4px 10px;
         border-radius: 8px;
         font-size: 0.75rem;
-        font-weight: 700;
+        font-weight: 600;
         text-transform: uppercase;
         display: inline-block;
+    }
+
+    .pickup {
+        background: #f3e5f5;
+        color: #7b1fa2;
     }
 
     .status-badge.paid {
@@ -121,6 +126,11 @@
     }
 
     .status-badge.completed {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-badge.delivered {
         background: #e8f5e9;
         color: #2e7d32;
     }
@@ -176,6 +186,7 @@
                                         <th>Date</th>
                                         <th>Payment</th>
                                         <th>Order</th>
+                                        <th>Delivery</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -197,6 +208,17 @@
                                                 {{ $order->status_name }}
                                             </span>
                                         </td>
+                                        <td>
+                                            @if($order->deliveryneeded == 0)
+                                            <span class="status-badge pickup">
+                                                Pick-up
+                                            </span>
+                                            @else
+                                            <span class="status-badge {{ strtolower($order->deliverystatus) }}">
+                                                {{ $order->deliverystatus }}
+                                            </span>
+                                            @endif
+                                        </td>
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -216,3 +238,4 @@
     </div>
 </div>
 
+@endSection

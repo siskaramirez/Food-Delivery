@@ -58,10 +58,10 @@ class PageController extends Controller
         $user = $this->getUsers();
 
         $logs = DB::table('UserChangeHistoryLog')
-              ->where('UserID', Auth::id())
-              ->orderBy('LastModified', 'DESC')
-              ->limit(10)
-              ->get();
+            ->where('UserID', Auth::id())
+            ->orderBy('LastModified', 'DESC')
+            ->limit(10)
+            ->get();
 
         return view('page.profile', compact('user', 'logs'));
     }
@@ -90,27 +90,16 @@ class PageController extends Controller
 
         $request->validate($rules, $messages);
 
-        try {
-            DB::table('users')
-                ->where('userid', Auth::user()->userid) 
-                ->update([
-                    'uname'     => $request->name,
-                    'address'   => $request->address,
-                    'contactno' => $request->phone,
-                    'gender'    => ($request->gender == 'male') ? 'M' : 'F',
-                ]);
+        DB::table('users')
+            ->where('userid', Auth::user()->userid)
+            ->update([
+                'uname'     => $request->name,
+                'address'   => $request->address,
+                'contactno' => $request->phone,
+                'gender'    => ($request->gender == 'male') ? 'M' : 'F',
+            ]);
 
-            // 3. Success Redirect
-            return redirect()
-                ->route('profile.page')
-                ->with('success', 'Profile updated successfully!');
-
-        } catch (\Exception $e) {
-            // 4. Error Handling
-            return redirect()
-                ->back()
-                ->with('error', 'Failed to update profile. Please try again.');
-        }
+        return redirect()->route('profile.page')->with('success', 'Profile updated successfully!');
     }
 
     public function orders()
@@ -171,15 +160,15 @@ class PageController extends Controller
         return view('page.orders', compact('user', 'orders'));
     }
 
-    public function cancelOrder($id)
+    public function deleteOrder($id)
     {
         try {
             DB::beginTransaction();
 
-            DB::table('order_items')->where('orderid', $id)->delete();
             DB::table('payments')->where('orderid', $id)->delete();
+            DB::table('order_items')->where('orderid', $id)->delete();
             DB::table('delivery')->where('orderid', $id)->delete();
-            //DB::table('orderhistorylog')->where('orderid', $id)->delete();
+            DB::table('orderhistorylog')->where('orderid', $id)->delete();
             DB::table('deliveryhistorylog')->where('orderid', $id)->delete();
 
             $deleted = DB::table('orders')->where('orderid', $id)->delete();
@@ -192,6 +181,22 @@ class PageController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
+        }
+    }
+
+    public function cancelOrder($id)
+    {
+        try {
+            DB::table('orders')
+                ->where('orderid', $id)
+                ->update([
+                    'order_status_id' => 3,
+                    'datelastmodified' => now()
+                ]);
+
+            return response()->json(['success' => true, 'message' => 'Order cancelled.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
 
@@ -231,6 +236,7 @@ class PageController extends Controller
                 'order_status.status_name as order_status',
                 'delivery.deliverystatus',
                 'payments.paymentmethod',
+                'payments.paymentstatus',
                 'driver.drivername',
                 'driver.contactno',
 
@@ -244,6 +250,7 @@ class PageController extends Controller
                 'order_status.status_name',
                 'delivery.deliverystatus',
                 'payments.paymentmethod',
+                'payments.paymentstatus',
                 'driver.drivername',
                 'driver.contactno',
             )
@@ -390,11 +397,13 @@ class PageController extends Controller
                 DB::table('payments')->whereIn('orderid', $orderIds)->delete();
                 DB::table('delivery')->where('orderid', $id)->delete();
                 DB::table('deliveryhistorylog')->where('orderid', $id)->delete();
-                //DB::table('orderhistorylog')->where('orderid', $id)->delete();
+                DB::table('orderhistorylog')->where('orderid', $id)->delete();
 
                 DB::table('orders')->where('userid', $id)->delete();
-
+                DB::table('userchangehistorylog')->where('userid', $id)->delete();
                 DB::table('users')->where('userid', $id)->delete();
+
+                Auth::logout();
             });
 
             return redirect()->back()->with('success', 'Account and all their records deleted successfully.');

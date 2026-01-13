@@ -23,16 +23,22 @@ class AuthController extends Controller
 
     public function signup(Request $request)
     {
-        $request->validate([
+        $rules = [
             'fname'     => 'required|string|max:25',
             'lname'     => 'required|string|max:25',
             'email'     => 'required|email|unique:users,username|regex:/@gmail\.com$/',
-            'bday'      => 'required|date|before:today',
+            'bday'      => 'required|date|before_or_equal:' . now()->subYears(18)->toDateString(),
             'address'   => 'required|max:100',
             'password'  => 'required|min:8',
             'phone'     => 'required|numeric|digits:11|regex:/^09/',
             'gender'    => 'required|in:male,female',
-        ]);
+        ];
+
+        $messages = [
+            'bday.before_or_equal' => 'You must be at least 18 years old.',
+        ];
+
+        $request->validate($rules, $messages);
 
         $calculatedAge = $this->calculateAge($request->input('bday'));
 

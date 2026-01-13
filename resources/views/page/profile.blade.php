@@ -218,12 +218,10 @@
 <dialog id="deleteUserModal" class="custom-dialog">
     <div class="dialog-content">
         <h3 class="fw-bold mb-3">Confirm Deletion</h3>
-        <p class="text-muted">Are you sure you want to remove your account?<br>
-            <span class="text-danger small">This action is permanent and cannot be undone.</span>
-        </p>
+        <p class="text-muted">Are you sure you want to remove your account?<br>This will permanently remove all the records.</p>
         <div class="dialog-actions">
             <button type="button" onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
-            <button type="button" id="btnConfirmDeleteUser" class="btn-confirm">Delete Permanently</button>
+            <button type="button" id="btnConfirmDeleteUser" class="btn-confirm">Delete</button>
         </div>
     </div>
 </dialog>
@@ -269,37 +267,50 @@
         }
 
         const deleteModal = document.getElementById('deleteUserModal');
+        const btnConfirmDelete = document.getElementById('btnConfirmDeleteUser');
         let userToDelete = null;
-
-        function openDeleteModal(userId) {
+        
+        window.openDeleteModal = function(userId) {
             userToDelete = userId;
-
             if (deleteModal) {
                 deleteModal.showModal();
             }
-        }
+        };
 
-        function closeDeleteModal() {
+        window.closeDeleteModal = function() {
             if (deleteModal) {
                 deleteModal.close();
             }
             userToDelete = null;
+        };
+
+        if (btnConfirmDelete) {
+            btnConfirmDelete.addEventListener('click', function() {
+                const form = document.getElementById('delete-account-form'); 
+                
+                if (form) {
+                    btnConfirmDelete.disabled = true;
+                    btnConfirmDelete.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+
+                    localStorage.clear();
+
+                    form.submit();
+                } else {
+                    console.error("Error: Delete form not found in the DOM.");
+                }
+            });
         }
 
-        document.getElementById('btnConfirmDeleteUser').addEventListener('click', function() {
-            if (userToDelete) {
-                const form = document.getElementById(`delete-form-${userToDelete}`);
-                const confirmBtn = this;
-
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-                form.submit();
-            }
-        });
-
         deleteModal.addEventListener('click', (e) => {
-            if (e.target === deleteModal) closeDeleteModal();
+            const dialogDimensions = deleteModal.getBoundingClientRect();
+            if (
+                e.clientX < dialogDimensions.left ||
+                e.clientX > dialogDimensions.right ||
+                e.clientY < dialogDimensions.top ||
+                e.clientY > dialogDimensions.bottom
+            ) {
+                closeDeleteModal();
+            }
         });
     });
 </script>
