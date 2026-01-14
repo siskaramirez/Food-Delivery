@@ -399,31 +399,38 @@ class PageController extends Controller
     public function deleteUser($id)
     {
         try {
+            $hasActive = DB::table('orders')
+                ->leftJoin('delivery', 'orders.orderid', '=', 'delivery.orderid')
+                ->where('orders.userid', $id)
+                ->whereNotIn('orders.order_status_id', [3])
+                ->where(function ($query) {
+                    $query->where(function ($q) {
+                        $q->where('orders.deliveryneeded', 1)
+                            ->where('delivery.deliverystatus', '!=', 'Delivered');
+                    })->orWhere(function ($q) {
+                        $q->where('orders.deliveryneeded', 0)
+                            ->where('orders.order_status_id', '!=', 2);
+                    });
+                })
+                ->exists();
+
+            if ($hasActive) {
+                return redirect()->back()->with('error', 'Cannot delete account. You still have pending orders.');
+            }
+
             DB::transaction(function () use ($id) {
-                $orderIds = DB::table('orders')->where('userid', $id)->pluck('orderid');
-                
+                DB::table('orders')->where('userid', $id)->pluck('orderid');
+
+                /*
                 if ($orderIds->isNotEmpty()) {
-                    $itemsToRestock = DB::table('order_items')
-                        ->join('delivery', 'order_items.orderid', '=', 'delivery.orderid')
-                        ->whereIn('order_items.orderid', $orderIds)
-                        ->where('delivery.deliverystatus', '!=', 'Delivered')
-                        ->select('order_items.foodcode', 'order_items.quantity')
-                        ->get();
-
-                    foreach ($itemsToRestock as $item) {
-                        DB::table('food_items')
-                            ->where('foodcode', $item->foodcode)
-                            ->increment('quantity', $item->quantity);
-                    }
-
+                    DB::table('deliveryhistorylog')->whereIn('orderid', $orderIds)->delete();
+                    DB::table('orderhistorylog')->whereIn('orderid', $orderIds)->delete();
                     DB::table('delivery')->whereIn('orderid', $orderIds)->delete();
                     DB::table('order_items')->whereIn('orderid', $orderIds)->delete();
                     DB::table('payments')->whereIn('orderid', $orderIds)->delete();
-                    DB::table('deliveryhistorylog')->whereIn('orderid', $orderIds)->delete();
-                    DB::table('orderhistorylog')->whereIn('orderid', $orderIds)->delete();
-
+                    
                     DB::table('orders')->where('userid', $id)->delete();
-                }
+                }*/
 
                 DB::table('userchangehistorylog')->where('userid', $id)->delete();
                 DB::table('users')->where('userid', $id)->delete();
@@ -431,7 +438,7 @@ class PageController extends Controller
                 Auth::logout();
             });
 
-            return redirect()->back()->with('success', 'Account and all their records deleted successfully.');
+            return redirect()->route('signin.page')->with('success', 'Your account and records have been deleted.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to delete account.');
         }

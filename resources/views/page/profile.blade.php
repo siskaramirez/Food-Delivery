@@ -143,6 +143,22 @@
     }
 </style>
 
+@php
+    $hasPending = DB::table('orders')
+        ->where('userid', Auth::user()->userid)
+        ->whereNotIn('order_status_id', [3])
+        ->where(function($q) {
+            $q->whereExists(function ($query) {
+               $query->select(DB::raw(1))
+                     ->from('delivery')
+                     ->whereColumn('delivery.orderid', 'orders.orderid')
+                     ->where('delivery.deliverystatus', '!=', 'Delivered');
+            })
+            ->orWhere('order_status_id', '=', 1);
+        })
+        ->exists();
+@endphp
+
 <div class="container py-5 mt-2">
     <div class="main-profile-card shadow-sm border-0 d-flex flex-wrap overflow-hidden">
 
@@ -190,7 +206,7 @@
                 <button type="button" onclick="openDeleteModal('{{ Auth::user()->userid }}')" class="btn btn-save-profile rounded-pill px-4 py-2 fw-bold shadow-sm">Delete Account</button>
             </div>
 
-            <!-- WARNING BUTTON
+            <!--
             <div class="mt-4">
                 <h4 class="fw-bold mb-3 text-dark">Quick Stats</h4>
                 <div class="d-flex gap-3">
@@ -214,6 +230,16 @@
     @csrf
     @method('DELETE')
 </form>
+
+<dialog id="pendingOrdersWarning" class="custom-dialog">
+    <div class="dialog-content text-center">
+        <h3 class="fw-bold mb-3">Action Denied</h3>
+        <p class="text-muted mb-3">Cannot delete account. You still have pending orders. Please wait for them to be delivered or cancel them first.</p>
+        <div class="mt-3">
+            <button type="button" onclick="document.getElementById('pendingOrdersWarning').close()" class="btn rounded-pill fw-bold px-5" style="color:white; background: #ff6b6b;">OK</button>
+        </div>
+    </div>
+</dialog>
 
 <dialog id="deleteUserModal" class="custom-dialog">
     <div class="dialog-content">
@@ -271,51 +297,48 @@
         }
 
         const deleteModal = document.getElementById('deleteUserModal');
+        const pendingModal = document.getElementById('pendingOrdersWarning');
         const btnConfirmDelete = document.getElementById('btnConfirmDeleteUser');
-        let userToDelete = null;
 
-        window.openDeleteModal = function(userId) {
-            userToDelete = userId;
-            if (deleteModal) {
-                deleteModal.showModal();
+        window.openDeleteModal = function() {
+            const hasPending = {{ $hasPending ? 'true' : 'false' }};
+            
+            if (hasPending) {
+                if (pendingModal) pendingModal.showModal();
+            } else {
+                if (deleteModal) deleteModal.showModal();
             }
         };
 
         window.closeDeleteModal = function() {
-            if (deleteModal) {
-                deleteModal.close();
-            }
-            userToDelete = null;
+            if (deleteModal) deleteModal.close();
         };
 
         if (btnConfirmDelete) {
             btnConfirmDelete.addEventListener('click', function() {
                 const form = document.getElementById('delete-account-form');
-
                 if (form) {
                     btnConfirmDelete.disabled = true;
                     btnConfirmDelete.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
-
+                    
                     localStorage.clear();
-
                     form.submit();
-                } else {
-                    console.error("Error: Delete form not found in the DOM.");
                 }
             });
         }
-
-        deleteModal.addEventListener('click', (e) => {
-            const dialogDimensions = deleteModal.getBoundingClientRect();
-            if (
-                e.clientX < dialogDimensions.left ||
-                e.clientX > dialogDimensions.right ||
-                e.clientY < dialogDimensions.top ||
-                e.clientY > dialogDimensions.bottom
-            ) {
-                closeDeleteModal();
-            }
-        });
+        
+        if (deleteModal) {
+            deleteModal.addEventListener('click', (e) => {
+                const dim = deleteModal.getBoundingClientRect();
+                if (
+                    e.clientX < dim.left || 
+                    e.clientX > dim.right || 
+                    e.clientY < dim.top || 
+                    e.clientY > dim.bottom) {
+                    closeDeleteModal();
+                }
+            });
+        }
     });
 </script>
 

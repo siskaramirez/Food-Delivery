@@ -82,8 +82,9 @@ class AuthController extends Controller
 
             $admin = DB::table('admins')->where('email', $credentials['email'])->first();
 
-            if ($admin && $credentials['password'] === $admin->password) {
+            if ($admin && Hash::check($credentials['password'], $admin->password)) {
 
+                $request->session()->regenerate();
                 session([
                     'user_role'  => 'admin',
                     'admin_id'   => $admin->adminid,
