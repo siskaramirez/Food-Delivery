@@ -74,11 +74,19 @@ class AdminController extends Controller
                     'deliverystatus' => $request->delivery_status
                 ]);
             }
+
+            /*
+            DB::table('deliveryhistorylog')->insert([
+                'orderid' => $id,
+                'license' => $request->license,
+                'deliverystatus' => 'Assigned',
+                'logtimestamp' => now()
+            ]);*/
         });
 
         return back()->with('success', 'Order updated successfully.');
     }
-    
+
     public function updateStatus($license)
     {
         $driver = DB::table('driver')->where('license', $license)->first();
