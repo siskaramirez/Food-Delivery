@@ -238,10 +238,14 @@
                         @if($order->deliveryneeded == 0)
                         <div class="info-item">
                             <span class="info-label">Service Type</span>
-                            <span class="info-value">Pick-up
+                            <span class="info-value">
+                                <span class="info-value">
                                 @if($order->order_status_id == 3)
-                                <span class="info-value">Pick-up Cancelled</span>
+                                    Pick-up Cancelled
+                                @else
+                                    Pick-up
                                 @endif
+                                </span>
                             </span>
                         </div>
                         @else

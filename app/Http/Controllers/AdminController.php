@@ -30,7 +30,7 @@ class AdminController extends Controller
                 ->leftJoin('delivery', 'orders.orderid', '=', 'delivery.orderid')
                 ->where('orders.userid', $user->userid)
                 ->select('orders.*', 'orders.deliveryneeded', 'order_status.status_name', 'payments.paymentstatus', 'delivery.deliverystatus')
-                ->orderBy('orders.orderdate', 'desc')
+                ->orderBy('orders.orderid', 'desc')
                 ->get();
         }
 
@@ -41,36 +41,44 @@ class AdminController extends Controller
     {
         $request->validate([
             'order_status'    => 'required|string',
+            'payment_status'  => 'nullable|string',
             'delivery_status' => 'nullable|string',
             'driver_license'  => 'nullable|string',
         ]);
 
-        try {
-            DB::transaction(function () use ($request, $id) {
-                $order = DB::table('orders')->where('orderid', $id)->first();
-                $status = DB::table('order_status')->where('status_name', $request->order_status)->first();
+        DB::transaction(function () use ($request, $id) {
+            //$order = DB::table('orders')->where('orderid', $id)->first();
+            $status = DB::table('order_status')->where('status_name', $request->order_status)->first();
 
-                if ($status) {
-                    DB::table('orders')->where('orderid', $id)->update([
-                        'order_status_id' => $status->order_status_id,
-                        'datelastmodified' => now()
-                    ]);
-                }
+            if ($status) {
+                DB::table('orders')->where('orderid', $id)->update([
+                    'order_status_id' => $status->order_status_id,
+                    'datelastmodified' => now()
+                ]);
+            }
 
-                if ($order->deliveryneeded == 1) {
-                    DB::table('delivery')->where('orderid', $id)->update([
-                        'license' => $request->driver_license,
-                        'deliverystatus' => $request->delivery_status ?? 'Pending',
-                    ]);
-                }
-            });
+            if ($request->filled('payment_status')) {
+                DB::table('orders')->where('orderid', $id)->update([
+                    'paymentstatus' => $request->payment_status
+                ]);
 
-            return redirect()->route('orders.admin')->with('success', "Order #{$id} updated successfully!");
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', "Update failed: " . $e->getMessage());
-        }
+                DB::table('payments')->where('orderid', $id)->update([
+                    'paymentstatus' => $request->payment_status,
+                    'updated_at' => now()
+                ]);
+            }
+
+            if ($request->has('driver_license')) {
+                DB::table('delivery')->where('orderid', $id)->update([
+                    'license' => $request->driver_license,
+                    'deliverystatus' => $request->delivery_status
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Order updated successfully.');
     }
-
+    
     public function updateStatus($license)
     {
         $driver = DB::table('driver')->where('license', $license)->first();

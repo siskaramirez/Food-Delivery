@@ -326,10 +326,16 @@
                         <td>
                             @if($lastOrderId !== $row->orderid)
                             @php
+                            $paymentStatus = $row->paymentstatus;
+                            $paymentMethod = $row->paymentmethod;
+
                             $isCancelled = ($row->order_status_id == 3);
                             $isPickUpFinished = ($row->deliveryneeded == 0 && $row->order_status_id == 2);
                             $isDeliveryFinished = ($row->deliveryneeded == 1 && $row->deliverystatus == 'Delivered');
-                            $showRemove = ($isCancelled || $isPickUpFinished || $isDeliveryFinished);
+
+                            $needsRefund = ($isCancelled && !in_array($paymentMethod, ['Cash', 'Cash on Delivery']) && $paymentStatus == 'Paid');
+
+                            $showRemove = ($isCancelled || $isPickUpFinished || $isDeliveryFinished) && !$needsRefund;
                             @endphp
 
                             @if(!$showRemove)
@@ -338,11 +344,9 @@
                                 data-bs-target="#editOrder-{{ $row->orderid }}">EDIT
                             </button>
                             @include('admin.edit-order', ['order' => $row])
-
+                            
                             @else
-                            <button type="button" class="remove-btn"
-                                onclick="openAdminDeleteModal('{{ $row->orderid }}')">REMOVE
-                            </button>
+                            <button type="button" class="remove-btn" onclick="openAdminDeleteModal('{{ $row->orderid }}')">REMOVE</button>
                             @endif
                             @endif
                         </td>

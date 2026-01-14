@@ -55,6 +55,17 @@
     .btn-cancel:hover {
         background: #e2e6ea;
     }
+
+    /* Ilagay ito sa iyong main CSS file o sa <style> tag ng admin page */
+    .status-disabled {
+        color: #ccc !important;
+        background-color: #f8f9fa !important;
+        cursor: not-allowed;
+    }
+
+    .status-active {
+        color: #333;
+    }
 </style>
 
 <div class="modal fade" id="editOrder-{{ $order->orderid }}" tabindex="-1">
@@ -69,24 +80,45 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-body p-3">
+
+                    @if($order->order_status_id !== 3)
                     <div class="mb-2">
                         <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ORDER STATUS</label>
-                        <select name="order_status" id="orderStatusSelect-{{ $order->orderid }}" onchange="toggleDeliveryFields('{{ $order->orderid }}')" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                            <option value="Pending" {{ $order->order_status_id == 1 ? 'selected' : '' }}>Pending</option>
+                        <select name="order_status" class="form-select form-select-sm border-0 bg-light">
+                            <option value="Pending" {{ $order->order_status_id == 1 ? 'selected' : '' }} {{ $order->order_status_id > 1 ? 'disabled' : '' }}>Pending</option>
                             <option value="Completed" {{ $order->order_status_id == 2 ? 'selected' : '' }}>Completed</option>
-                            <option value="Cancelled" {{ $order->order_status_id == 3 ? 'selected' : '' }}>Cancelled</option>
-                        </select>
                         </select>
                     </div>
+                    @else
+                    <input type="hidden" name="order_status" value="Cancelled">
+                    <div class="mb-2">
+                        <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ORDER STATUS</label>
+                        <input type="text" class="form-control form-control-sm border-0 bg-light" value="Cancelled" readonly>
+                    </div>
+                    @endif
 
+                    @if($order->order_status_id == 3)
+                    @php
+                    $payment = DB::table('payments')->where('orderid', $order->orderid)->first();
+                    @endphp
+
+                    @if($payment && !in_array($payment->paymentmethod, ['Cash on Delivery', 'Cash']))
+                    <div class="mb-2">
+                        <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">PAYMENT STATUS</label>
+                        <select name="payment_status" class="form-select form-select-sm border-0 bg-light">
+                            <option value="Paid" {{ $order->paymentstatus == 'Paid' ? 'selected' : '' }}>Paid</option>
+                            <option value="Refunded" {{ $order->paymentstatus == 'Refunded' ? 'selected' : '' }}>Refunded</option>
+                        </select>
+                    </div>
+                    @endif
+                    @endif
+                    
                     @if($order->deliveryneeded == 1)
-                    <div id="delivery-section-{{ $order->orderid }}"
-                        class="{{ $order->order_status_id != 2 ? 'd-none' : '' }}">
-                        
+                    <div id="delivery-section-{{ $order->orderid }}" class="{{ $order->order_status_id != 2 ? 'd-none' : '' }}">
                         <div class="mb-2">
                             <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ASSIGN DRIVER</label>
-                            <select name="driver_license" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                                <option value="">Select Driver</option>
+                            <select name="driver_license" id="driverSelect-{{ $order->orderid }}" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
+                                <option value="" id="defaultDriver-{{ $order->orderid }}" disabled selected hidden>Select Driver</option>
                                 @foreach($drivers as $driver)
                                 @php
                                 $isUnavailable = ($driver->isAvailable == 'UA' && $order->license !== $driver->license);
@@ -104,11 +136,37 @@
                         <div class="mb-2">
                             <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">DELIVERY STATUS</label>
                             <select name="delivery_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                                <option value="Pending" {{ ($order->deliverystatus ?? 'Pending') == 'Pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="Assigned" {{ ($order->deliverystatus ?? '') == 'Assigned' ? 'selected' : '' }}>Assigned</option>
-                                <option value="Picked Up" {{ ($order->deliverystatus ?? '') == 'Picked Up' ? 'selected' : '' }}>Picked Up</option>
-                                <option value="En Route" {{ ($order->deliverystatus ?? '') == 'En Route' ? 'selected' : '' }}>En Route</option>
-                                <option value="Delivered" {{ ($order->deliverystatus ?? '') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
+                                @php
+                                // Kunin ang current status o default sa 'Pending'
+                                $currentStatus = $order->deliverystatus ?? 'Pending';
+
+                                // I-define ang tamang pagkakasunod-sunod (Sequence)
+                                $statusSequence = ['Pending', 'Assigned', 'Picked Up', 'En Route', 'Delivered'];
+
+                                // Hanapin kung nasaan na ang order sa sequence
+                                $currentIndex = array_search($currentStatus, $statusSequence);
+                                @endphp
+
+                                @foreach($statusSequence as $index => $statusName)
+                                @php
+                                // Logic para sa disabling:
+                                // 1. Disable kung tapos na ang status (index < current)
+                                    // 2. Disable kung lampas sa susunod na step (index> current + 1)
+                                    $isDisabled = ($index < $currentIndex || $index> $currentIndex + 1);
+
+                                        // Special case: Kung 'Delivered' na, wala na dapat pwedeng galawin
+                                        if($currentStatus == 'Delivered' && $statusName != 'Delivered') {
+                                        $isDisabled = true;
+                                        }
+                                        @endphp
+
+                                        <option value="{{ $statusName }}"
+                                            {{ $currentStatus == $statusName ? 'selected' : '' }}
+                                            {{ $isDisabled ? 'disabled' : '' }}
+                                            class="{{ $isDisabled ? 'status-disabled' : 'status-active' }}">
+                                            {{ $statusName }}
+                                        </option>
+                                        @endforeach
                             </select>
                         </div>
                     </div>
