@@ -154,7 +154,7 @@
 
                         <div class="mb-2">
                             <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">DELIVERY STATUS</label>
-                            <select name="delivery_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
+                            <select name="delivery_status" id="deliveryStatus-{{ $order->orderid }}" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
                                 @php
                                 $currentStatus = $order->deliverystatus ?? 'Pending';
 
@@ -207,14 +207,48 @@
     </div>
 </dialog>
 
+<dialog id="driverWarningModal" class="custom-dialog">
+    <div class="dialog-content text-start">
+        <h3 class="fw-bold mb-2">Missing Driver</h3>
+        <p class="text-muted">Please select a driver before setting the delivery status to <strong>Assigned</strong>.</p>
+        <div class="dialog-actions">
+            <button type="button" onclick="closeWarningModal()" class="btn rounded-pill fw-bold px-5" style="color:white; background: #ff6b6b;">OK</button>
+        </div>
+    </div>
+</dialog>
+
 <script>
     const updateModal = document.getElementById('confirmUpdateModal');
+    const warningModal = document.getElementById('driverWarningModal');
     let pendingOrderId = null;
 
     function confirmUpdate(orderId) {
+        const driverSelect = document.getElementById(`driverSelect-${orderId}`);
+        const statusSelect = document.getElementById(`deliveryStatus-${orderId}`);
+
+        const deliveryStatus = statusSelect ? statusSelect.value : "";
+
+        let driverLicense = "";
+        if (driverSelect) {
+            driverLicense = driverSelect.value;
+        } else {
+            const hiddenInput = document.querySelector(`#updateForm-${orderId} input[name="driver_license"]`);
+            driverLicense = hiddenInput ? hiddenInput.value : "";
+        }
+
+        if (deliveryStatus === 'Assigned' && (!driverLicense || driverLicense.trim() === "")) {
+            const warningModal = document.getElementById('driverWarningModal');
+            warningModal.showModal();
+            return;
+        }
+
         pendingOrderId = orderId;
         document.getElementById('update-order-id').innerText = orderId;
         updateModal.showModal();
+    }
+
+    function closeWarningModal() {
+        warningModal.close();
     }
 
     function closeUpdateModal() {
@@ -234,7 +268,9 @@
         }
     });
 
-    updateModal.addEventListener('click', (e) => {
-        if (e.target === updateModal) closeUpdateModal();
+    [updateModal, warningModal].forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.close();
+        });
     });
 </script>
