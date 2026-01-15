@@ -123,10 +123,17 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+        //const cart = JSON.parse(localStorage.getItem('eatsway_cart')) || [];
+        let cart = JSON.parse(localStorage.getItem('eatsway_cart')) || JSON.parse(sessionStorage.getItem('eatsway_checkout_snapshot'));
         const savedPhone = localStorage.getItem('user_phone') || "{{ $user['phone'] }}";
         const savedPayment = sessionStorage.getItem('temp_method') || "No payment provided";
         const savedAddress = sessionStorage.getItem('temp_address') || "{{ $user['address'] }}";
+
+        if (cart && cart.length > 0) {
+            sessionStorage.setItem('eatsway_checkout_snapshot', JSON.stringify(cart));
+        } else {
+            cart = JSON.parse(sessionStorage.getItem('eatsway_checkout_snapshot')) || [];
+        }
 
         document.getElementById('summary-phone').innerText = savedPhone;
         document.getElementById('summary-address').innerText = savedAddress;
@@ -169,16 +176,22 @@
         if (headerCount) headerCount.innerText = "(0)";
 
         const isPaymentDone = sessionStorage.getItem('payment_done');
-        if (cart.length > 0 && isPaymentDone === 'true') {
+        const orderAlreadyPlaced = sessionStorage.getItem('order_submitted');
+
+        if (cart.length > 0 && isPaymentDone === 'true' && !orderAlreadyPlaced) {
             autoPlaceOrder(cart);
+        } else if (orderAlreadyPlaced) {
+            const displayElement = document.getElementById('order-id-display');
+            if (displayElement) displayElement.innerText = "#" + orderAlreadyPlaced;
         }
 
+        /*
         function clearCart() {
             localStorage.removeItem('eatsway_cart');
             sessionStorage.clear();
-            /*
-            localStorage.removeItem('active_order_num'); */
-        }
+            
+            localStorage.removeItem('active_order_num');
+        } */
     });
 
     async function autoPlaceOrder(cart) {
@@ -206,9 +219,9 @@
             if (result.success) {
                 const displayElement = document.getElementById('order-id-display');
                 if (displayElement) {
-                    // Gagamitin ang result.order_id na galing sa insertGetId ng Controller
                     displayElement.innerText = "#" + result.order_id;
                 }
+                sessionStorage.setItem('order_submitted', result.order_id);
                 localStorage.removeItem('eatsway_cart');
             } else {
                 console.error("Auto-save failed: " + result.message);
@@ -218,6 +231,18 @@
             console.error("Order failed:", error);
         }
     }
+    window.addEventListener('beforeunload', function (e) {
+    });
+
+    document.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', function() {
+            if (!this.href.includes(window.location.pathname)) {
+                sessionStorage.removeItem('eatsway_checkout_snapshot');
+                sessionStorage.removeItem('order_submitted');
+                sessionStorage.removeItem('payment_done');
+            }
+        });
+    });
 </script>
 
 @endSection
