@@ -80,22 +80,28 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-body p-3">
+                    @php
+                    $isStatusLocked = in_array($order->order_status_id, [2, 3]);
 
-                    @if($order->order_status_id !== 3)
+                    $statusLabel = 'Pending';
+                    if($order->order_status_id == 2) $statusLabel = 'Completed';
+                    if($order->order_status_id == 3) $statusLabel = 'Cancelled';
+                    @endphp
+
                     <div class="mb-2">
                         <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ORDER STATUS</label>
-                        <select name="order_status" class="form-select form-select-sm border-0 bg-light">
-                            <option value="Pending" {{ $order->order_status_id == 1 ? 'selected' : '' }} {{ $order->order_status_id > 1 ? 'disabled' : '' }}>Pending</option>
-                            <option value="Completed" {{ $order->order_status_id == 2 ? 'selected' : '' }}>Completed</option>
+                        @if($isStatusLocked)
+                        <div class="form-control form-control-sm border-0 bg-light text-start" style="border-radius: 10px; font-size: 0.85rem;">
+                            {{ $statusLabel }}
+                        </div>
+                        <input type="hidden" name="order_status" value="{{ $statusLabel }}">
+                        @else
+                        <select name="order_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
+                            <option value="Pending" {{ $order->order_status_id == 1 ? 'selected' : '' }}>Pending</option>
+                            <option value="Completed">Completed</option>
                         </select>
+                        @endif
                     </div>
-                    @else
-                    <input type="hidden" name="order_status" value="Cancelled">
-                    <div class="mb-2">
-                        <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ORDER STATUS</label>
-                        <input type="text" class="form-control form-control-sm border-0 bg-light" value="Cancelled" readonly>
-                    </div>
-                    @endif
 
                     @if($order->order_status_id == 3)
                     @php
@@ -117,21 +123,14 @@
                     <div id="delivery-section-{{ $order->orderid }}" class="{{ $order->order_status_id != 2 ? 'd-none' : '' }}">
                         @php
                         $currentStatus = $order->deliverystatus ?? 'Pending';
-                        $isDriverLocked = in_array($currentStatus, ['Picked Up', 'En Route', 'Delivered']);
+                        $isAssigned = in_array($currentStatus, ['Assigned', 'Picked Up', 'En Route', 'Delivered']);
                         @endphp
 
                         <div class="mb-2">
+                            @if(!$isAssigned)
                             <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ASSIGN DRIVER</label>
-
-                            @if($isDriverLocked)
-                            <div class="form-control form-control-sm border-0 bg-light d-flex align-items-center" style="border-radius: 10px; font-size: 0.85rem; height: 31px; color: #666;">
-                                <!--<i class="fas fa-user-shield me-2 text-primary" style="font-size: 0.75rem;"></i>-->
-                                {{ $order->license }}
-                            </div>
-                            <input type="hidden" name="driver_license" value="{{ $order->license }}">
-                            @else
                             <select name="driver_license" id="driverSelect-{{ $order->orderid }}" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                                <option value="" id="defaultDriver-{{ $order->orderid }}" disabled {{ !$order->license ? 'selected' : '' }} hidden>Select Driver</option>
+                                <option value="" id="defaultDriver-{{ $order->orderid }}" disabled selected hidden>Select Driver</option>
                                 @foreach($drivers as $driver)
                                 @php
                                 $isUnavailable = ($driver->isAvailable == 'UA' && $order->license !== $driver->license);
@@ -144,6 +143,12 @@
                                 </option>
                                 @endforeach
                             </select>
+                            @else
+                            <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">ASSIGNED DRIVER</label>
+                            <div class="form-control form-control-sm border-0 bg-light text-start" style="border-radius: 10px; font-size: 0.85rem;">
+                                {{ $order->license }}
+                            </div>
+                            <input type="hidden" name="driver_license" value="{{ $order->license }}">
                             @endif
                         </div>
 
@@ -151,30 +156,29 @@
                             <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">DELIVERY STATUS</label>
                             <select name="delivery_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
                                 @php
+                                $currentStatus = $order->deliverystatus ?? 'Pending';
+
                                 $statusSequence = ['Pending', 'Assigned', 'Picked Up', 'En Route', 'Delivered'];
+
                                 $currentIndex = array_search($currentStatus, $statusSequence);
                                 @endphp
 
                                 @foreach($statusSequence as $index => $statusName)
                                 @php
-                                // Logic para sa disabling statuses:
-                                // 1. Disable kung tapos na ang status (index < current)
-                                    // 2. Disable kung lampas sa susunod na step (index> current + 1)
-                                    $isDisabled = ($index < $currentIndex || $index> $currentIndex + 1);
+                                $isDisabled = ($index < $currentIndex || $index> $currentIndex + 1);
 
-                                        // Special case: Kung 'Delivered' na, wala na dapat pwedeng galawin
-                                        if($currentStatus == 'Delivered' && $statusName != 'Delivered') {
-                                        $isDisabled = true;
-                                        }
-                                        @endphp
+                                    if($currentStatus == 'Delivered' && $statusName != 'Delivered') {
+                                    $isDisabled = true;
+                                    }
+                                    @endphp
 
-                                        <option value="{{ $statusName }}"
-                                            {{ $currentStatus == $statusName ? 'selected' : '' }}
-                                            {{ $isDisabled ? 'disabled' : '' }}
-                                            class="{{ $isDisabled ? 'status-disabled' : 'status-active' }}">
-                                            {{ $statusName }}
-                                        </option>
-                                        @endforeach
+                                    <option value="{{ $statusName }}"
+                                        {{ $currentStatus == $statusName ? 'selected' : '' }}
+                                        {{ $isDisabled ? 'disabled' : '' }}
+                                        class="{{ $isDisabled ? 'status-disabled' : 'status-active' }}">
+                                        {{ $statusName }}
+                                    </option>
+                                    @endforeach
                             </select>
                         </div>
                     </div>
