@@ -5,11 +5,11 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
+/*Route::get('/', function () {
     return view('welcome');
-});
+});*/
 
-Route::get('/', [AuthController::class, 'landing'])->name('landing');
+Route::get('', [AuthController::class, 'landing'])->name('landing');
 Route::get('/landing', [AuthController::class, 'landing'])->name('landing.page');
 
 Route::get('/user/signup', [AuthController::class, 'showSignup'])->name('signup.page');
