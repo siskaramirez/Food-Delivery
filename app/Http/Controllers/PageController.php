@@ -418,6 +418,16 @@ class PageController extends Controller
                 return redirect()->back()->with('error', 'Cannot delete account. You still have pending orders.');
             }
 
+            $needsRefund = DB::table('orders')
+                ->where('userid', $id)
+                ->where('order_status_id', 3)
+                ->where('paymentstatus', 'Paid')
+                ->exists();
+
+            if ($needsRefund) {
+                return redirect()->back()->with('error', 'Cannot delete account.Please wait for your refund to be processed.');
+            }
+            
             DB::transaction(function () use ($id) {
                 DB::table('orders')->where('userid', $id)->pluck('orderid');
 

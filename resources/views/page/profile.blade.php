@@ -144,6 +144,8 @@
 </style>
 
 @php
+    $userId = Auth::user()->userid;
+
     $hasPending = DB::table('orders')
         ->where('userid', Auth::user()->userid)
         ->whereNotIn('order_status_id', [3])
@@ -156,6 +158,12 @@
             })
             ->orWhere('order_status_id', '=', 1);
         })
+        ->exists();
+    
+    $needsRefund = DB::table('orders')
+        ->where('userid', $userId)
+        ->where('order_status_id', 3) 
+        ->where('paymentstatus', 'Paid')
         ->exists();
 @endphp
 
@@ -241,6 +249,16 @@
     </div>
 </dialog>
 
+<dialog id="refundWarningModal" class="custom-dialog">
+    <div class="dialog-content text-center">
+        <h3 class="fw-bold mb-3">Refund Pending</h3>
+        <p class="text-muted mb-3">Cannot delete account. You have a cancelled order that is already paid. Please wait for your refund to be processed.</p>
+        <div class="mt-3">
+            <button type="button" onclick="document.getElementById('refundWarningModal').close()" class="btn rounded-pill fw-bold px-5" style="color:white; background: #ff6b6b;">OK</button>
+        </div>
+    </div>
+</dialog>
+
 <dialog id="deleteUserModal" class="custom-dialog">
     <div class="dialog-content">
         <h3 class="fw-bold mb-3">Confirm Deletion</h3>
@@ -298,13 +316,17 @@
 
         const deleteModal = document.getElementById('deleteUserModal');
         const pendingModal = document.getElementById('pendingOrdersWarning');
+        const refundModal = document.getElementById('refundWarningModal');
         const btnConfirmDelete = document.getElementById('btnConfirmDeleteUser');
 
         window.openDeleteModal = function() {
             const hasPending = {{ $hasPending ? 'true' : 'false' }};
+            const needsRefund = {{ $needsRefund ? 'true' : 'false' }};
             
             if (hasPending) {
                 if (pendingModal) pendingModal.showModal();
+            } else if (needsRefund) {
+                if (refundModal) refundModal.showModal();
             } else {
                 if (deleteModal) deleteModal.showModal();
             }
@@ -327,18 +349,20 @@
             });
         }
         
-        if (deleteModal) {
-            deleteModal.addEventListener('click', (e) => {
-                const dim = deleteModal.getBoundingClientRect();
-                if (
-                    e.clientX < dim.left || 
-                    e.clientX > dim.right || 
-                    e.clientY < dim.top || 
-                    e.clientY > dim.bottom) {
-                    closeDeleteModal();
-                }
-            });
-        }
+        [deleteModal, pendingModal, refundModal].forEach(modal => {
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    const dim = modal.getBoundingClientRect();
+                    if (
+                        e.clientX < dim.left || 
+                        e.clientX > dim.right || 
+                        e.clientY < dim.top || 
+                        e.clientY > dim.bottom) {
+                        modal.close();
+                    }
+                });
+            }
+        });
     });
 </script>
 
