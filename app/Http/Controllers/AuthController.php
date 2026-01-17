@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+
 
 class AuthController extends Controller
 {
@@ -52,12 +55,31 @@ class AuthController extends Controller
             'address'   => $request->address,
         ]);
 
+
         /*
         Auth::login($user);
         $request->session()->regenerate();
         session(['user_role' => 'customer']); */
+        try {
+            $plainPassword = $request->password; // Getting the raw password before redirect
 
-        return redirect()->route('signin.page')->with('success', 'Account created!')->with('user_email', $user->username);
+            Mail::send('email.registration', [
+                'user' => $user,
+                'plainPassword' => $plainPassword,
+                'accountType' => 'Customer'
+            ], function ($message) use ($user) {
+                $message->to($user->username, $user->uname)
+                    ->subject('Welcome to YourFoodApp - Account Created!');
+            });
+        } catch (\Exception $e) {
+            // Log the error so the signup doesn't crash if email fails
+            Log::error('Email sending failed: ' . $e->getMessage());
+        }
+
+        // 3. Redirect
+        return redirect()->route('signin.page')
+            ->with('success', 'Account created! Welcome email sent.')
+            ->with('user_email', $user->username);
     }
 
     public function showSignin()

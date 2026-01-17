@@ -79,11 +79,11 @@
                             <td>{{ $driver->plateno }}</td>
                             <td>
                                 @if($driver->isAvailable == 'AV')
-                                <span class="status-badge status-available">Available</span>
+                                <span class="status-badge status-available">AVAILABLE</span>
                                 @else
-                                <span class="status-badge status-unavailable">Unavailable</span>
+                                <span class="status-badge status-unavailable">UNAVAILABLE</span>
                                 @endif
-                                
+
                                 <div class="mt-1">
                                     <small class="text-muted">
                                         Active: {{ $driver->active_orders_count }} / 2

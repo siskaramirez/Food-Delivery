@@ -59,7 +59,9 @@ class AdminController extends Controller
 
             if ($request->filled('payment_status')) {
                 DB::table('orders')->where('orderid', $id)->update([
-                    'paymentstatus' => $request->payment_status
+                    'paymentstatus' => $request->payment_status,
+                    'updated_at' => now()
+
                 ]);
 
                 DB::table('payments')->where('orderid', $id)->update([
@@ -69,21 +71,33 @@ class AdminController extends Controller
             }
 
             if ($request->has('driver_license')) {
+                // Get the OLD driver before we update
+                $oldDelivery = DB::table('delivery')->where('orderid', $id)->first();
+                $oldLicense = $oldDelivery->license ?? null;
+                $newLicense = $request->driver_license;
+
+                // Update the Delivery record
                 DB::table('delivery')->where('orderid', $id)->update([
-                    'license' => $request->driver_license,
-                    'deliverystatus' => $request->delivery_status
+                    'license' => $newLicense,
+                    'deliverystatus' => $request->delivery_status ?? 'Pending'
                 ]);
+
+                // If the driver was REMOVED (license set to null or empty)
+                if (empty($newLicense) && !empty($oldLicense)) {
+                    DB::table('driver')->where('license', $oldLicense)->update(['isAvailable' => 'AV']);
+                }
+                // If a NEW driver was assigned
+                elseif (!empty($newLicense)) {
+                    // Set the new driver to Unavailable
+                    DB::table('driver')->where('license', $newLicense)->update(['isAvailable' => 'UA']);
+
+                    // If there was an old driver they replaced, make the old one Available again
+                    if (!empty($oldLicense) && $oldLicense !== $newLicense) {
+                        DB::table('driver')->where('license', $oldLicense)->update(['isAvailable' => 'AV']);
+                    }
+                }
             }
-
-            /*
-            DB::table('deliveryhistorylog')->insert([
-                'orderid' => $id,
-                'license' => $request->license,
-                'deliverystatus' => 'Assigned',
-                'logtimestamp' => now()
-            ]);*/
         });
-
         return back()->with('success', 'Order updated successfully.');
     }
 
