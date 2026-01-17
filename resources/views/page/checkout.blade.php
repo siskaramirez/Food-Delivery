@@ -221,6 +221,13 @@
                 if (displayElement) {
                     displayElement.innerText = "#" + result.order_id;
                 }
+                const tempPickupDate = sessionStorage.getItem('temp_pickup_datetime');
+
+                if (tempPickupDate) {
+                    sessionStorage.setItem('pickup_date_' + result.order_id, tempPickupDate);
+                    sessionStorage.setItem('pickup_string_' + result.order_id, sessionStorage.getItem('temp_address'));
+                }
+
                 sessionStorage.setItem('order_submitted', result.order_id);
                 localStorage.removeItem('eatsway_cart');
             } else {

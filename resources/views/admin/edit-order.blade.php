@@ -103,20 +103,27 @@
                         @endif
                     </div>
 
-                    @if($order->order_status_id == 3)
                     @php
                     $payment = DB::table('payments')->where('orderid', $order->orderid)->first();
+                    $paymentMethod = $payment ? $payment->paymentmethod : '';
+
+                    $isCancelledRefundable = ($order->order_status_id == 3 && !in_array($paymentMethod, ['Cash on Delivery', 'Cash']));
+                    $isCashPickupPending = ($order->deliveryneeded == 0 && $paymentMethod == 'Cash' && $order->order_status_id != 3);
                     @endphp
 
-                    @if($payment && !in_array($payment->paymentmethod, ['Cash on Delivery', 'Cash']))
+                    @if($isCancelledRefundable || $isCashPickupPending)
                     <div class="mb-2">
                         <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">PAYMENT STATUS</label>
                         <select name="payment_status" class="form-select form-select-sm border-0 bg-light">
+                            @if($isCancelledRefundable)
                             <option value="Paid" {{ $order->paymentstatus == 'Paid' ? 'selected' : '' }}>Paid</option>
                             <option value="Refunded" {{ $order->paymentstatus == 'Refunded' ? 'selected' : '' }}>Refunded</option>
+                            @else
+                            <option value="Pending" {{ $order->paymentstatus == 'Pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="Paid" {{ $order->paymentstatus == 'Paid' ? 'selected' : '' }}>Paid</option>
+                            @endif
                         </select>
                     </div>
-                    @endif
                     @endif
 
                     @if($order->deliveryneeded == 1)

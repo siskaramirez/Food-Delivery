@@ -286,13 +286,13 @@
                         <td>
                             @if($lastOrderId !== $row->orderid)
                             @if($row->deliveryneeded == 1)
-                            <span class="service-tag delivery"><i class="fas fa-truck"></i> Delivery</span>
+                            <span class="service-tag delivery"><i class="fas fa-truck"></i>Delivery</span>
                             @else
-                            <span class="service-tag pickup"><i class="fas fa-walking"></i> Pick-up</span>
+                            <span class="service-tag pickup"><i class="fas fa-walking"></i>Pick-up</span>
                             @endif
                             @endif
                         </td>
-
+                        
                         <td>
                             @if($lastOrderId !== $row->orderid)
                             <span class="status-badge order-badge {{ strtolower($row->status_name) }}">
@@ -314,7 +314,13 @@
                         </td>
 
                         <td class="small text-muted">
-                            @if($lastOrderId !== $row->orderid) {{ $row->license ?? 'NA' }} @endif
+                            @if($lastOrderId !== $row->orderid)
+                            @if($row->deliveryneeded == 1)
+                            {{ $row->license ?? 'NA' }} 
+                            @else
+                            <div id="admin-pickup-{{ trim($row->orderid) }}" class="text-muted"></div>
+                            @endif
+                            @endif
                         </td>
 
                         <td class="text-muted small">
@@ -330,7 +336,7 @@
                             $paymentMethod = $row->paymentmethod;
 
                             $isCancelled = ($row->order_status_id == 3);
-                            $isPickUpFinished = ($row->deliveryneeded == 0 && $row->order_status_id == 2);
+                            $isPickUpFinished = ($row->deliveryneeded == 0 && $row->paymentstatus == 'Paid');
                             $isDeliveryFinished = ($row->deliveryneeded == 1 && $row->deliverystatus == 'Delivered');
 
                             $needsRefund = ($isCancelled && !in_array($paymentMethod, ['Cash', 'Cash on Delivery']) && $paymentStatus == 'Paid');
@@ -372,6 +378,26 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const pickupContainers = document.querySelectorAll('[id^="admin-pickup-"]');    
+
+        pickupContainers.forEach(container => {
+            const orderId = container.id.replace('admin-pickup-', '').trim();
+            const savedDate = sessionStorage.getItem('pickup_date_' + orderId);
+
+            if (savedDate) {
+                const dateObj = new Date(savedDate);
+                const options = { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: 'numeric', 
+                    minute: '2-digit', 
+                    hour12: true 
+                };
+                
+                container.innerHTML = `<i class="far fa-clock me-1"></i> ${dateObj.toLocaleString('en-US', options)}`;
+            }
+        });
+
         const modal = document.getElementById('adminDeleteModal');
         const btnCancel = document.getElementById('adminBtnCancel');
         const btnConfirm = document.getElementById('adminBtnConfirm');

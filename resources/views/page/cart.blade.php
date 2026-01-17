@@ -199,6 +199,14 @@
                         </div>
                     </div>
 
+                    <div id="pickup-details-wrapper" class="d-none">
+                        <div class="mb-4">
+                            <label class="info-label mb-2">Date & Time</label>
+                            <input type="datetime-local" id="pickup-date-input" class="form-control border-0 shadow-sm rounded-3 p-3" style="font-size: 0.9rem;">
+                            <small class="text-muted ms-2" style="font-size: 0.7rem;">Please set when you will pick up the order.</small>
+                        </div>
+                    </div>
+
                     <div class="mb-4">
                         <label class="info-label mb-2">Mode of Payment (MOP)</label>
                         <select id="payment-method-select" class="form-select border-0 shadow-sm rounded-3 fw-bold p-3" style="font-size: 0.9rem;">
@@ -363,15 +371,22 @@
     function toggleServiceFields() {
         const serviceType = document.getElementById('service-type-select').value;
         const deliveryWrapper = document.getElementById('delivery-details-wrapper');
+        const pickupWrapper = document.getElementById('pickup-details-wrapper');
         const paymentSelect = document.getElementById('payment-method-select');
         const firstPaymentOption = paymentSelect.options[0];
 
         if (serviceType === "Pick-up") {
             deliveryWrapper.classList.add('d-none');
+            pickupWrapper.classList.remove('d-none');
             firstPaymentOption.value = "Cash";
             firstPaymentOption.textContent = "Cash";
+            
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('pickup-date-input').min = now.toISOString().slice(0, 16);
         } else {
             deliveryWrapper.classList.remove('d-none');
+            pickupWrapper.classList.add('d-none');
             firstPaymentOption.value = "Cash on Delivery";
             firstPaymentOption.textContent = "Cash on Delivery (COD)";
         }
@@ -427,7 +442,24 @@
         let finalAddress = "";
 
         if (serviceType === "Pick-up") {
-            finalAddress = "Pick-up at Store";
+            const pickupDateValue = document.getElementById('pickup-date-input').value;
+
+            if (!pickupDateValue) {
+                alert("Please select a date and time for pick-up.");
+                return;
+            }
+
+            const dateObj = new Date(pickupDateValue);
+            const formattedDate = dateObj.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            finalAddress = `Pick-up on ${formattedDate}`;
+            sessionStorage.setItem('temp_pickup_datetime', pickupDateValue);
         } else {
             const addressSelect = document.getElementById('delivery-address-select').value;
             if (addressSelect === "custom") {
@@ -439,6 +471,7 @@
             } else {
                 finalAddress = addressSelect || "{{ $user['address'] }}";
             }
+            sessionStorage.removeItem('temp_pickup_datetime');
         }
 
         sessionStorage.setItem('temp_address', finalAddress);

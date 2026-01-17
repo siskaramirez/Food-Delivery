@@ -240,6 +240,10 @@
                             <span class="info-label">Service Type</span>
                             <span class="info-value">Pick-up</span>
                         </div>
+                        <div class="info-item">
+                            <span class="info-label">Schedule</span>
+                            <span id="receipt-pickup-date" class="info-value">Loading...</span>
+                        </div>
                         @else
                         <div class="info-item">
                             <span class="info-label">Rider</span>
@@ -306,6 +310,23 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const pickupDisplay = document.getElementById('receipt-pickup-date');
+        if (!pickupDisplay) return;
+
+        let savedAddress = sessionStorage.getItem('temp_address');
+
+        if (!savedAddress) {
+            const lastId = sessionStorage.getItem('order_submitted');
+            savedAddress = localStorage.getItem('pickup_string_' + lastId);
+        }
+
+        if (savedAddress) {
+            const cleanDate = savedAddress.replace('Pick-up on ', '');
+            pickupDisplay.innerText = cleanDate;
+        } else {
+            pickupDisplay.innerText = "As scheduled";
+        }
+
         const modal = document.getElementById('cancelOrderModal');
         const btnCancel = document.getElementById('btnCancel');
         const btnConfirmCancel = document.getElementById('btnConfirmCancel');
