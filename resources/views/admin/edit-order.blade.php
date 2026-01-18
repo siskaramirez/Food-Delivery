@@ -81,11 +81,12 @@
                 @method('PUT')
                 <div class="modal-body p-3">
                     @php
-                    $isStatusLocked = in_array($order->order_status_id, [2, 3]);
+                    $isStatusLocked = in_array($order->order_status_id, [3, 4]);
 
                     $statusLabel = 'Pending';
                     if($order->order_status_id == 2) $statusLabel = 'Completed';
                     if($order->order_status_id == 3) $statusLabel = 'Cancelled';
+                    if($order->order_status_id == 4) $statusLabel = 'Unsuccessful Order';
                     @endphp
 
                     <div class="mb-2">
@@ -98,7 +99,9 @@
                         @else
                         <select name="order_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
                             <option value="Pending" {{ $order->order_status_id == 1 ? 'selected' : '' }}>Pending</option>
-                            <option value="Completed">Completed</option>
+                            <option value="Completed" {{ $order->order_status_id == 2 ? 'selected' : '' }}>Completed</option>
+                            <!--<option value="Cancelled" {{ $order->order_status_id == 3 ? 'selected' : '' }}>Cancelled</option> -->
+                            <option value="Unsuccessful" {{ $order->order_status_id == 4 ? 'selected' : '' }}>Unsuccessful Order</option>
                         </select>
                         @endif
                     </div>
@@ -106,16 +109,17 @@
                     @php
                     $payment = DB::table('payments')->where('orderid', $order->orderid)->first();
                     $paymentMethod = $payment ? $payment->paymentmethod : '';
+                    $isDigital = !in_array($paymentMethod, ['Cash on Delivery', 'Cash']);
 
-                    $isCancelledRefundable = ($order->order_status_id == 3 && !in_array($paymentMethod, ['Cash on Delivery', 'Cash']));
-                    $isCashPickupPending = ($order->deliveryneeded == 0 && $paymentMethod == 'Cash' && $order->order_status_id != 3);
+                    $showPaymentStatus = ($isDigital && in_array($order->order_status_id, [3, 4])) || 
+                         ($order->deliveryneeded == 0 && $paymentMethod == 'Cash' && $order->order_status_id == 2);
                     @endphp
 
-                    @if($isCancelledRefundable || $isCashPickupPending)
+                    @if($showPaymentStatus)
                     <div class="mb-2">
                         <label class="fw-bold text-muted mb-1" style="font-size: 0.7rem;">PAYMENT STATUS</label>
                         <select name="payment_status" class="form-select form-select-sm border-0 bg-light">
-                            @if($isCancelledRefundable)
+                            @if($isDigital && in_array($order->order_status_id, [3, 4]))
                             <option value="Paid" {{ $order->paymentstatus == 'Paid' ? 'selected' : '' }}>Paid</option>
                             <option value="Refunded" {{ $order->paymentstatus == 'Refunded' ? 'selected' : '' }}>Refunded</option>
                             @else

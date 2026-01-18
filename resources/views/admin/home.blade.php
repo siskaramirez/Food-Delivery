@@ -140,6 +140,11 @@
         color: #c62828;
     }
 
+    .status-badge.unsuccessful {
+        background: #ffebee;
+        color: #c62828;
+    }
+
     .status-badge.order-pending {
         background: #fff3e0;
         color: #ef6c00;
@@ -253,6 +258,7 @@
     </div>
 </div>
 
+<!--
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const hiddenAdminOrders = JSON.parse(localStorage.getItem('admin_hidden_orders') || '[]');
@@ -264,6 +270,6 @@
             }
         });
     });
-</script>
+</script> -->
 
 @endSection

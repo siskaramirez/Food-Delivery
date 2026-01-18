@@ -458,8 +458,11 @@
                 hour12: true
             });
 
-            finalAddress = `Pick-up on ${formattedDate}`;
+            const pickupScheduleStr = `Pick-up on ${formattedDate}`;
+            sessionStorage.setItem('temp_pickup_display', pickupScheduleStr);
             sessionStorage.setItem('temp_pickup_datetime', pickupDateValue);
+
+            finalAddress = `Pick-up Service`;
         } else {
             const addressSelect = document.getElementById('delivery-address-select').value;
             if (addressSelect === "custom") {
@@ -471,7 +474,7 @@
             } else {
                 finalAddress = addressSelect || "{{ $user['address'] }}";
             }
-            sessionStorage.removeItem('temp_pickup_datetime');
+            sessionStorage.removeItem('temp_pickup_display');
         }
 
         sessionStorage.setItem('temp_address', finalAddress);

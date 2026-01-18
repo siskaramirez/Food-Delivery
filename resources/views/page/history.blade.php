@@ -270,7 +270,9 @@
                         <div class="info-item">
                             <span class="info-label">Payment Method</span>
                             <span class="info-value">
-                                @if(in_array($order->paymentstatus, ['Refunded', 'Cancelled']))
+                                @if(in_array($order->paymentstatus, ['Refunded', 'Cancelled', 'Unsuccessful']))
+                                <span class="info-value">{{ $order->paymentstatus }}</span>
+                                @elseif($order->deliveryneeded == 0 && $order->order_status_id == 2 && $order->paymentstatus == 'Paid')
                                 <span class="info-value">{{ $order->paymentstatus }}</span>
                                 @else
                                 {{ $order->paymentmethod }}
@@ -294,7 +296,7 @@
                     } elseif ($order->deliveryneeded == 1) {
                     $statusResult = $order->deliverystatus;
                     } else {
-                    $statusResult = $order->order_status;
+                    $statusResult = ($order->paymentstatus == 'Paid') ? 'Picked up' : $order->order_status;
                     }
                     @endphp
 

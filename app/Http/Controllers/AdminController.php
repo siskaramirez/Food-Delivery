@@ -58,21 +58,52 @@ class AdminController extends Controller
             }
 
             if ($request->filled('payment_status')) {
-                DB::table('orders')->where('orderid', $id)->update([
-                    'paymentstatus' => $request->payment_status
-                ]);
+                $isAutomated = in_array($request->order_status, ['Cancelled', 'Unsuccessful']);
+                $isManualRefund = ($request->payment_status == 'Refunded');
 
-                DB::table('payments')->where('orderid', $id)->update([
-                    'paymentstatus' => $request->payment_status,
-                    'updated_at' => now()
-                ]);
+                if (!$isAutomated || $isManualRefund) {
+                    DB::table('payments')->where('orderid', $id)->update([
+                        'paymentstatus' => $request->payment_status,
+                        'updated_at' => now()
+                    ]);
+
+                    DB::table('orders')->where('orderid', $id)->update([
+                        'paymentstatus' => $request->payment_status,
+                        'datelastmodified' => now()
+                    ]);
+                }
             }
 
             if ($request->has('driver_license')) {
+                $oldDelivery = DB::table('delivery')->where('orderid', $id)->first();
+                $oldLicense = $oldDelivery->license ?? null;
+                $newLicense = $request->driver_license;
+
+                $finalDeliveryStatus = ($request->order_status == 'Unsuccessful') ? 'Unsuccessful' : $request->delivery_status;
+
                 DB::table('delivery')->where('orderid', $id)->update([
-                    'license' => $request->driver_license,
-                    'deliverystatus' => $request->delivery_status
+                    'license' => $newLicense,
+                    'deliverystatus' => $finalDeliveryStatus
                 ]);
+
+                if ($oldLicense) {
+                    $this->refreshDriverAvailability($oldLicense);
+                }
+
+                if ($newLicense) {
+                    $this->refreshDriverAvailability($newLicense);
+                }
+            }
+
+            elseif ($request->order_status == 'Unsuccessful') {
+                DB::table('delivery')->where('orderid', $id)->update([
+                    'deliverystatus' => 'Unsuccessful'
+                ]);
+                
+                $currentDelivery = DB::table('delivery')->where('orderid', $id)->first();
+                if ($currentDelivery && $currentDelivery->license) {
+                    $this->refreshDriverAvailability($currentDelivery->license);
+                }
             }
 
             /*
@@ -214,5 +245,17 @@ class AdminController extends Controller
             ->get();
 
         return view('admin.drivers', compact('drivers'));
+    }
+
+    private function refreshDriverAvailability($license)
+    {
+        $activeCount = DB::table('delivery')
+            ->where('license', $license)
+            ->whereIn('deliverystatus', ['Assigned', 'Picked Up', 'En Route'])
+            ->count();
+
+        $status = ($activeCount >= 2) ? 'UA' : 'AV';
+
+        DB::table('driver')->where('license', $license)->update(['isAvailable' => $status]);
     }
 }

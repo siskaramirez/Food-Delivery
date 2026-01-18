@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -57,7 +58,22 @@ class AuthController extends Controller
         $request->session()->regenerate();
         session(['user_role' => 'customer']); */
 
-        return redirect()->route('signin.page')->with('success', 'Account created!')->with('user_email', $user->username);
+        try {
+            $plainPassword = $request->password;
+
+            Mail::send('email.registration', [
+                'user' => $user,
+                'plainPassword' => $plainPassword,
+                'accountType' => 'Customer'
+            ], function ($message) use ($user) {
+                $message->to($user->username, $user->uname)
+                    ->subject('Welcome to EatsWay - Account Created!');
+            });
+        } catch (\Exception $e) {
+            return "Email Error: " . $e->getMessage();
+        }
+
+        return redirect()->route('signin.page')->with('success', 'Account created! Welcome email sent.')->with('user_email', $user->username);
     }
 
     public function showSignin()

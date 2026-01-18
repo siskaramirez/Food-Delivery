@@ -128,14 +128,12 @@ class PageController extends Controller
             ->where(function ($query) {
                 $query->where(function ($q) {
                     $q->where('orders.deliveryneeded', 0)
-                        ->where('orders.order_status_id', 1);
+                        ->whereNotIn('orders.order_status_id', [2, 3, 4]);
                 })
                     ->orWhere(function ($q) {
                         $q->where('orders.deliveryneeded', 1)
-                            ->where('orders.order_status_id', '!=', 3)
-                            ->where(function ($sub) {
-                                $sub->where('delivery.deliverystatus', '!=', 'Delivered');
-                            });
+                            ->whereNotIn('orders.order_status_id', [3, 4])
+                            ->where('delivery.deliverystatus', '!=', 'Delivered');
                     });
             })
             ->select(
@@ -144,6 +142,7 @@ class PageController extends Controller
                 'orders.deliveryneeded',
                 'order_status.status_name as order_status',
                 'payments.paymentmethod',
+                'payments.paymentstatus',
                 'delivery.deliverystatus',
                 'driver.drivername',
                 'driver.contactno',
@@ -157,6 +156,7 @@ class PageController extends Controller
                 'orders.deliveryneeded',
                 'order_status.status_name',
                 'payments.paymentmethod',
+                'payments.paymentstatus',
                 'delivery.deliverystatus',
                 'driver.drivername',
                 'driver.contactno',
@@ -227,13 +227,19 @@ class PageController extends Controller
             ->where(function ($query) {
                 $query->where(function ($q) {
                     $q->where('orders.deliveryneeded', 0)
-                        ->whereIn('orders.order_status_id', [2, 3]);
+                        ->where(function ($sub) {
+                            $sub->where(function ($completeCheck) {
+                                $completeCheck->where('orders.paymentstatus', 'Paid')
+                                    ->where('orders.order_status_id', 2);
+                            })
+                            ->orWhereIn('orders.order_status_id', [3, 4]);
+                        });
                 })
                     ->orWhere(function ($q) {
                         $q->where('orders.deliveryneeded', 1)
                             ->where(function ($sub) {
                                 $sub->where('delivery.deliverystatus', 'Delivered')
-                                    ->orWhere('orders.order_status_id', 3);
+                                    ->orWhereIn('orders.order_status_id', [3, 4]);
                             });
                     });
             })
@@ -427,7 +433,7 @@ class PageController extends Controller
             if ($needsRefund) {
                 return redirect()->back()->with('error', 'Cannot delete account.Please wait for your refund to be processed.');
             }
-            
+
             DB::transaction(function () use ($id) {
                 DB::table('orders')->where('userid', $id)->pluck('orderid');
 

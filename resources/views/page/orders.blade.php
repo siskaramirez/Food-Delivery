@@ -279,6 +279,8 @@
                     <span class="info-label">Status</span>
                     @if($order->deliveryneeded == 1)
                     <span class="status-text">{{ $order->deliverystatus }}</span>
+                    @elseif($order->paymentstatus == 'Paid' && $order->order_status_id == 2)
+                    <span class="status-text">Picked up</span>
                     @else
                     <span class="status-text">{{ $order->order_status }}</span>
                     @endif
@@ -310,23 +312,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const pickupDisplay = document.getElementById('receipt-pickup-date');
-        if (!pickupDisplay) return;
-
-        let savedAddress = sessionStorage.getItem('temp_address');
-
-        if (!savedAddress) {
-            const lastId = sessionStorage.getItem('order_submitted');
-            savedAddress = localStorage.getItem('pickup_string_' + lastId);
-        }
-
-        if (savedAddress) {
-            const cleanDate = savedAddress.replace('Pick-up on ', '');
-            pickupDisplay.innerText = cleanDate;
-        } else {
-            pickupDisplay.innerText = "As scheduled";
-        }
-
         const modal = document.getElementById('cancelOrderModal');
         const btnCancel = document.getElementById('btnCancel');
         const btnConfirmCancel = document.getElementById('btnConfirmCancel');
@@ -390,6 +375,23 @@
                 btnConfirmCancel.innerText = "Cancel Order";
             }
         });
+
+        const pickupDisplay = document.getElementById('receipt-pickup-date');
+        if (!pickupDisplay) return;
+
+        let savedSchedule = sessionStorage.getItem('temp_pickup_display');
+
+        if (!savedSchedule) {
+            const lastId = sessionStorage.getItem('order_submitted');
+            savedSchedule = localStorage.getItem('pickup_string_' + lastId);
+        }
+
+        if (savedSchedule) {
+            const cleanDate = savedSchedule.replace('Pick-up on ', '');
+            pickupDisplay.innerText = cleanDate;
+        } else {
+            pickupDisplay.innerText = "As scheduled";
+        }
     });
 </script>
 

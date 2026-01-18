@@ -209,10 +209,18 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
                 },
                 body: JSON.stringify(orderData)
             });
+
+            if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Server Error Response:", errorText);
+            alert("May problema sa server. Check Console (F12).");
+            return;
+            }
 
             const result = await response.json();
 
@@ -221,17 +229,19 @@
                 if (displayElement) {
                     displayElement.innerText = "#" + result.order_id;
                 }
-                const tempPickupDate = sessionStorage.getItem('temp_pickup_datetime');
+                const pickupDisplayStr = sessionStorage.getItem('temp_pickup_display');
+                const pickupRawValue = sessionStorage.getItem('temp_pickup_datetime');
 
-                if (tempPickupDate) {
-                    sessionStorage.setItem('pickup_date_' + result.order_id, tempPickupDate);
-                    sessionStorage.setItem('pickup_string_' + result.order_id, sessionStorage.getItem('temp_address'));
+                if (pickupDisplayStr) {
+                    sessionStorage.setItem('pickup_date_' + result.order_id, pickupRawValue);
+                    sessionStorage.setItem('pickup_string_' + result.order_id, pickupDisplayStr);
                 }
 
                 sessionStorage.setItem('order_submitted', result.order_id);
                 localStorage.removeItem('eatsway_cart');
             } else {
                 console.error("Auto-save failed: " + result.message);
+                alert("Checkout Failed: " + result.message);
                 window.location.href = "{{ route('cart.page') }}";
             }
         } catch (error) {

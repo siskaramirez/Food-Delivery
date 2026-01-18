@@ -92,6 +92,11 @@
         color: #c62828;
     }
 
+    .pay-badge.unsuccessful {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
     .order-badge.pending {
         background-color: #fff3e0;
         color: #ef6c00;
@@ -103,6 +108,11 @@
     }
 
     .order-badge.cancelled {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
+    .order-badge.unsuccessful {
         background-color: #ffebee;
         color: #c62828;
     }
@@ -133,6 +143,11 @@
     }
 
     .delivery-badge.cancelled {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
+    .delivery-badge.unsuccessful {
         background-color: #ffebee;
         color: #c62828;
     }
@@ -249,12 +264,12 @@
                         <th width="8%">Order<br>ID</th>
                         <th width="8%">Food<br>Code</th>
                         <th width="8%">Total<br>Amount</th>
-                        <th width="15%">Payment<br>Method</th>
+                        <th width="14%">Payment<br>Method</th>
                         <th width="12%">Payment<br>Status</th>
-                        <th width="12%">Service<br>Type</th>
+                        <th width="15%">Service<br>Type</th>
                         <th width="12%">Order<br>Status</th>
                         <th width="12%">Delivery<br>Status</th>
-                        <th width="15%">Driver<br>Assign</th>
+                        <th width="12%">Driver<br>Assign</th>
                         <th width="10%">Date<br>Ordered</th>
                         <th width="10%"></th>
                     </tr>
@@ -286,16 +301,16 @@
                         <td>
                             @if($lastOrderId !== $row->orderid)
                             @if($row->deliveryneeded == 1)
-                            <span class="service-tag delivery"><i class="fas fa-truck"></i>Delivery</span>
+                            <span class="service-tag delivery"></i>Delivery</span>
                             @else
-                            <span class="service-tag pickup"><i class="fas fa-walking"></i>Pick-up</span>
+                            <span class="service-tag pickup"></i>Pick-up <div id="admin-pickup-{{ trim($row->orderid) }}"></div></span>
                             @endif
                             @endif
                         </td>
                         
                         <td>
                             @if($lastOrderId !== $row->orderid)
-                            <span class="status-badge order-badge {{ strtolower($row->status_name) }}">
+                            <span class="status-badge order-badge {{ str_replace(' ', '', strtolower($row->status_name)) }}">
                                 {{ $row->status_name }}
                             </span>
                             @endif
@@ -315,10 +330,11 @@
 
                         <td class="small text-muted">
                             @if($lastOrderId !== $row->orderid)
-                            @if($row->deliveryneeded == 1)
-                            {{ $row->license ?? 'NA' }} 
+                            @if($row->order_status_id == 3)
+                            @elseif($row->deliveryneeded == 0)
+                            N/A
                             @else
-                            <div id="admin-pickup-{{ trim($row->orderid) }}" class="text-muted"></div>
+                            {{ $row->license ?? 'Not Assigned' }}
                             @endif
                             @endif
                         </td>
@@ -335,13 +351,12 @@
                             $paymentStatus = $row->paymentstatus;
                             $paymentMethod = $row->paymentmethod;
 
-                            $isCancelled = ($row->order_status_id == 3);
+                            $isFailed = in_array($row->order_status_id, [3, 4]);
                             $isPickUpFinished = ($row->deliveryneeded == 0 && $row->paymentstatus == 'Paid');
                             $isDeliveryFinished = ($row->deliveryneeded == 1 && $row->deliverystatus == 'Delivered');
 
-                            $needsRefund = ($isCancelled && !in_array($paymentMethod, ['Cash', 'Cash on Delivery']) && $paymentStatus == 'Paid');
-
-                            $showRemove = ($isCancelled || $isPickUpFinished || $isDeliveryFinished) && !$needsRefund;
+                            $needsRefund = ($isFailed && !in_array($paymentMethod, ['Cash', 'Cash on Delivery']) && $paymentStatus == 'Paid');
+                            $showRemove = ($isFailed || $isPickUpFinished || $isDeliveryFinished) && !$needsRefund;
                             @endphp
 
                             @if(!$showRemove)
