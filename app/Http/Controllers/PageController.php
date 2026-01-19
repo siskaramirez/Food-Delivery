@@ -128,7 +128,8 @@ class PageController extends Controller
             ->where(function ($query) {
                 $query->where(function ($q) {
                     $q->where('orders.deliveryneeded', 0)
-                        ->whereNotIn('orders.order_status_id', [2, 3, 4]);
+                        ->whereNotIn('orders.order_status_id', [2, 3, 4])
+                        ->where('orders.paymentstatus', '!=', 'Refunded');
                 })
                     ->orWhere(function ($q) {
                         $q->where('orders.deliveryneeded', 1)
@@ -232,7 +233,8 @@ class PageController extends Controller
                                 $completeCheck->where('orders.paymentstatus', 'Paid')
                                     ->where('orders.order_status_id', 2);
                             })
-                                ->orWhereIn('orders.order_status_id', [3, 4]);
+                                ->orWhereIn('orders.order_status_id', [3, 4])
+                                ->orWhere('orders.paymentstatus', 'Refunded');
                         });
                 })
                     ->orWhere(function ($q) {

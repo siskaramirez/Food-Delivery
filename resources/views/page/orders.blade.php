@@ -230,7 +230,7 @@
             </div>
             @else
             @foreach($orders as $order)
-            <div class="order-history-card">
+            <div class="order-history-card" id="customer-order-{{ $order->orderid }}" data-is-digital="{{ !in_array($order->paymentmethod, ['Cash', 'Cash on Delivery']) ? 'true' : 'false' }}">
                 <div class="order-main-info">
                     <span class="order-number-label">Order #{{ $order->orderid }}</span>
 
@@ -312,6 +312,17 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[id^="customer-order-"]').forEach(card => {
+            const orderId = card.id.split('-')[2];
+            const isDigital = card.getAttribute('data-is-digital') === 'true';
+
+            // Kung ang admin ay pinindot na ang "Success" (Picked-up)
+            if (isDigital && sessionStorage.getItem('finalized_' + orderId) === 'true') {
+                // Itago sa Active Orders list dahil "Success" na ito
+                card.style.display = 'none';
+            }
+        });
+
         const modal = document.getElementById('cancelOrderModal');
         const btnCancel = document.getElementById('btnCancel');
         const btnConfirmCancel = document.getElementById('btnConfirmCancel');

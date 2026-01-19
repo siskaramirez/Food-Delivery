@@ -310,7 +310,7 @@
 
                         <td>
                             @if($lastOrderId !== $row->orderid)
-                            <span class="status-badge order-badge {{ str_replace(' ', '', strtolower($row->status_name)) }}">
+                            <span id="status-badge-{{ $row->orderid }}" class="status-badge order-badge {{ str_replace(' ', '', strtolower($row->status_name)) }}">
                                 {{ $row->status_name }}
                             </span>
                             @endif
@@ -363,16 +363,21 @@
 
                             $showRemove = ($isFailed || $isPickUpFinished || $isDeliveryFinished) && !$needsRefund;
                             @endphp
-                            @if(!$showRemove)
-                            <button type="button" class="edit-btn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#editOrder-{{ $row->orderid }}">EDIT
-                            </button>
-                            @include('admin.edit-order', ['order' => $row])
 
-                            @else
-                            <button type="button" class="remove-btn" onclick="openAdminDeleteModal('{{ $row->orderid }}')">REMOVE</button>
-                            @endif
+                            <div id="btn-container-{{ $row->orderid }}" data-is-digital="{{ $isDigital ? 'true' : 'false' }}">
+                                <button type="button" class="edit-btn {{ $showRemove ? 'd-none' : '' }}"
+                                    id="edit-btn-{{ $row->orderid }}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editOrder-{{ $row->orderid }}">EDIT
+                                </button>
+
+                                <button type="button" class="remove-btn {{ !$showRemove ? 'd-none' : '' }}"
+                                    id="remove-btn-{{ $row->orderid }}"
+                                    onclick="openAdminDeleteModal('{{ $row->orderid }}')">REMOVE
+                                </button>
+                            </div>
+
+                            @include('admin.edit-order', ['order' => $row])
                             @endif
                         </td>
                     </tr>
@@ -466,6 +471,53 @@
                 e.clientY < dimensions.top ||
                 e.clientY > dimensions.bottom) {
                 modal.close();
+            }
+        });
+
+        document.addEventListener('change', function(e) {
+            const target = e.target;
+
+            if (target && target.classList.contains('status-select')) {
+
+                if (target.value === 'Success') {
+                    const orderId = target.getAttribute('data-order-id');
+                    sessionStorage.setItem('finalized_' + orderId, 'true');
+                    alert("Order #" + orderId + " marked as Truly Successful.");
+                    location.reload();
+                }
+
+                const orderId = target.getAttribute('data-order-id');
+                const deliverySection = document.getElementById('delivery-section-' + orderId);
+                if (deliverySection) {
+                    if (target.value === 'Completed') {
+                        deliverySection.classList.remove('d-none');
+                    } else {
+                        deliverySection.classList.add('d-none');
+                    }
+                }
+            }
+        });
+
+        document.querySelectorAll('[id^="btn-container-"]').forEach(container => {
+            const orderId = container.id.split('-')[2];
+            const isDigital = container.getAttribute('data-is-digital') === 'true';
+
+            if (isDigital && sessionStorage.getItem('finalized_' + orderId) === 'true') {
+                const editBtn = document.getElementById('edit-btn-' + orderId);
+                const removeBtn = document.getElementById('remove-btn-' + orderId);
+
+                const statusBadge = document.getElementById('status-badge-' + orderId);
+
+                if (editBtn && removeBtn) {
+                    editBtn.classList.add('d-none');
+                    removeBtn.classList.remove('d-none');
+                }
+
+                if (statusBadge) {
+                    statusBadge.innerText = 'Success';
+                    statusBadge.style.backgroundColor = '#e8f5e9';
+                    statusBadge.style.color = '#2e7d32';
+                }
             }
         });
     });

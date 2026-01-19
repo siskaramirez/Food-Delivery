@@ -97,9 +97,12 @@
                         </div>
                         <input type="hidden" name="order_status" value="{{ $statusLabel }}">
                         @else
-                        <select name="order_status" class="form-select form-select-sm border-0 bg-light" style="border-radius: 10px; font-size: 0.85rem;">
-                            <option value="Pending" {{ $order->order_status_id == 1 ? 'selected' : '' }}>Pending</option>
+                        <select name="order_status" data-order-id="{{ $order->orderid }}" class="form-select form-select-sm border-0 bg-light status-select" style="border-radius: 10px; font-size: 0.85rem;">
+                            <option value="Pending" {{ $order->order_status_id == 1 ? 'selected' : '' }} {{ $order->order_status_id > 1 ? 'disabled' : '' }}>Pending</option>
                             <option value="Completed" {{ $order->order_status_id == 2 ? 'selected' : '' }}>Completed</option>
+                            @if($order->paymentmethod != 'Cash' && $order->order_status_id == 2 && $order->paymentstatus == 'Paid')
+                            <option value="Success">Success Picked-up</option>
+                            @endif
                             <!--<option value="Cancelled" {{ $order->order_status_id == 3 ? 'selected' : '' }}>Cancelled</option> -->
                             <option value="Unsuccessful" {{ $order->order_status_id == 4 ? 'selected' : '' }}>Unsuccessful Order</option>
                         </select>
@@ -111,8 +114,8 @@
                     $paymentMethod = $payment ? $payment->paymentmethod : '';
                     $isDigital = !in_array($paymentMethod, ['Cash on Delivery', 'Cash']);
 
-                    $showPaymentStatus = ($isDigital && in_array($order->order_status_id, [3, 4])) || 
-                         ($order->deliveryneeded == 0 && $paymentMethod == 'Cash' && $order->order_status_id == 2);
+                    $showPaymentStatus = ($isDigital && in_array($order->order_status_id, [3, 4])) ||
+                    ($order->deliveryneeded == 0 && $paymentMethod == 'Cash' && $order->order_status_id == 2);
                     @endphp
 
                     @if($showPaymentStatus)
@@ -282,6 +285,20 @@
     [updateModal, warningModal].forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.close();
+        });
+    });
+
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            if (this.value === 'Success') {s
+                const orderId = this.getAttribute('data-order-id');
+
+                if (orderId) {
+                    sessionStorage.setItem('finalized_' + orderId, 'true');
+                    alert("Order #" + orderId + " marked as Success");
+                    location.reload();
+                }
+            }
         });
     });
 </script>
