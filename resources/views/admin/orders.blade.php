@@ -307,7 +307,7 @@
                             @endif
                             @endif
                         </td>
-                        
+
                         <td>
                             @if($lastOrderId !== $row->orderid)
                             <span class="status-badge order-badge {{ str_replace(' ', '', strtolower($row->status_name)) }}">
@@ -350,22 +350,26 @@
                             @php
                             $paymentStatus = $row->paymentstatus;
                             $paymentMethod = $row->paymentmethod;
+                            $isDigital = !in_array($paymentMethod, ['Cash', 'Cash on Delivery']);
 
                             $isFailed = in_array($row->order_status_id, [3, 4]);
-                            $isPickUpFinished = ($row->deliveryneeded == 0 && $row->paymentstatus == 'Paid');
+
+                            $isPickUpFinished = ($row->deliveryneeded == 0 && $row->paymentstatus == 'Paid' &&
+                            $row->order_status_id == 2 && !$isDigital);
+
                             $isDeliveryFinished = ($row->deliveryneeded == 1 && $row->deliverystatus == 'Delivered');
 
-                            $needsRefund = ($isFailed && !in_array($paymentMethod, ['Cash', 'Cash on Delivery']) && $paymentStatus == 'Paid');
+                            $needsRefund = ($isFailed && $isDigital && $paymentStatus == 'Paid');
+
                             $showRemove = ($isFailed || $isPickUpFinished || $isDeliveryFinished) && !$needsRefund;
                             @endphp
-
                             @if(!$showRemove)
                             <button type="button" class="edit-btn"
                                 data-bs-toggle="modal"
                                 data-bs-target="#editOrder-{{ $row->orderid }}">EDIT
                             </button>
                             @include('admin.edit-order', ['order' => $row])
-                            
+
                             @else
                             <button type="button" class="remove-btn" onclick="openAdminDeleteModal('{{ $row->orderid }}')">REMOVE</button>
                             @endif
@@ -393,7 +397,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const pickupContainers = document.querySelectorAll('[id^="admin-pickup-"]');    
+        const pickupContainers = document.querySelectorAll('[id^="admin-pickup-"]');
 
         pickupContainers.forEach(container => {
             const orderId = container.id.replace('admin-pickup-', '').trim();
@@ -401,14 +405,14 @@
 
             if (savedDate) {
                 const dateObj = new Date(savedDate);
-                const options = { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    hour: 'numeric', 
-                    minute: '2-digit', 
-                    hour12: true 
+                const options = {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
                 };
-                
+
                 container.innerHTML = `<i class="far fa-clock me-1"></i> ${dateObj.toLocaleString('en-US', options)}`;
             }
         });

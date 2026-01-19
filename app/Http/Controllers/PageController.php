@@ -232,7 +232,7 @@ class PageController extends Controller
                                 $completeCheck->where('orders.paymentstatus', 'Paid')
                                     ->where('orders.order_status_id', 2);
                             })
-                            ->orWhereIn('orders.order_status_id', [3, 4]);
+                                ->orWhereIn('orders.order_status_id', [3, 4]);
                         });
                 })
                     ->orWhere(function ($q) {
@@ -284,8 +284,22 @@ class PageController extends Controller
         }
 
         $activeOrdersCount = DB::table('orders')
-            ->where('userid', $user->userid)
-            ->where('order_status_id', [1])
+            ->leftJoin('delivery', 'orders.orderid', '=', 'delivery.orderid')
+            ->where('orders.userid', $user->userid)
+            ->where(function ($query) {
+                $query->whereIn('orders.order_status_id', [1])
+                    ->orWhere(function ($sub) {
+                        $sub->where('orders.order_status_id', 2)
+                            ->where(function ($q) {
+                                $q->where('orders.deliveryneeded', 0)
+                                    ->where('orders.paymentstatus', '!=', 'Paid')
+                                    ->orWhere(function ($del) {
+                                        $del->where('orders.deliveryneeded', 1)
+                                            ->where('delivery.deliverystatus', '!=', 'Delivered');
+                                    });
+                            });
+                    });
+            })
             ->count();
 
         $foodStocks = DB::table('food_items')
@@ -317,10 +331,24 @@ class PageController extends Controller
     {
         $user = Auth::user();
         if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized']);
-
+        
         $activeOrders = DB::table('orders')
-            ->where('userid', $user->userid)
-            ->whereIn('order_status_id', [1])
+            ->leftJoin('delivery', 'orders.orderid', '=', 'delivery.orderid')
+            ->where('orders.userid', $user->userid)
+            ->where(function ($query) {
+                $query->whereIn('orders.order_status_id', [1])
+                    ->orWhere(function ($sub) {
+                        $sub->where('orders.order_status_id', 2)
+                            ->where(function ($q) {
+                                $q->where('orders.deliveryneeded', 0)
+                                    ->where('orders.paymentstatus', '!=', 'Paid')
+                                    ->orWhere(function ($del) {
+                                        $del->where('orders.deliveryneeded', 1)
+                                            ->where('delivery.deliverystatus', '!=', 'Delivered');
+                                    });
+                            });
+                    });
+            })
             ->count();
 
         if ($activeOrders >= 2) {

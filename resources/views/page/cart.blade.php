@@ -373,6 +373,8 @@
         const deliveryWrapper = document.getElementById('delivery-details-wrapper');
         const pickupWrapper = document.getElementById('pickup-details-wrapper');
         const paymentSelect = document.getElementById('payment-method-select');
+        
+        const pickupInput = document.getElementById('pickup-date-input');
         const firstPaymentOption = paymentSelect.options[0];
 
         if (serviceType === "Pick-up") {
@@ -382,8 +384,16 @@
             firstPaymentOption.textContent = "Cash";
             
             const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('pickup-date-input').min = now.toISOString().slice(0, 16);
+            const offset = now.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(now - offset)).toISOString().slice(0,16);
+
+            if (pickupInput) {
+                pickupInput.min = localISOTime;
+
+                if (pickupInput.value && pickupInput.value < localISOTime) {
+                    pickupInput.value = localISOTime;
+                }   
+            }
         } else {
             deliveryWrapper.classList.remove('d-none');
             pickupWrapper.classList.add('d-none');
@@ -446,6 +456,14 @@
 
             if (!pickupDateValue) {
                 alert("Please select a date and time for pick-up.");
+                return;
+            }
+
+            const selectedDate = new Date(pickupDateValue);
+            const now = new Date();
+
+            if (selectedDate < now) {
+                alert("Please select a valid date and time for pick-up.");
                 return;
             }
 
